@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ChatMod Mobile is a phone-hosted YouTube Live moderation bot with local rules, creator-owned bot identity, audit logs, commands, timers, and free-tier backend sync."
+    />
+    <title>ChatMod Mobile - Phone-hosted YouTube Live moderation</title>
+    <link rel="icon" href="assets/chatmod-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="ChatMod Mobile home">
+        <img src="assets/chatmod-mark.svg" alt="" width="38" height="38" />
+        <span>ChatMod Mobile</span>
+      </a>
+      <nav class="site-nav" aria-label="Site sections">
+        <a href="#runtime">Runtime</a>
+        <a href="#stack">Stack</a>
+        <a href="#beta">Beta</a>
+      </nav>
+      <a class="nav-action" href="#beta">Join beta</a>
+    </header>
+
+    <main id="main">
+      <section id="top" class="hero" aria-labelledby="hero-title">
+        <div class="signal-grid" aria-hidden="true"></div>
+        <img class="hero-visual" src="assets/chatmod-phone-dashboard.svg" alt="Preview of the ChatMod Mobile live moderation dashboard" />
+        <div class="hero-copy">
+          <p class="eyebrow">Custom YouTube Live moderation from your phone</p>
+          <h1 id="hero-title">ChatMod Mobile</h1>
+          <p class="hero-text">
+            Run a creator-owned live chat bot on Android, keep the bot name tied to your YouTube channel, and sync only the account, backup, billing, support, and audit data that belongs on the backend.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button primary" href="#beta">Request beta access</a>
+            <a class="button secondary" href="#runtime">See how it runs</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="status-strip" aria-label="Product status">
+        <div>
+          <strong>Android-first</strong>
+          <span>Foreground service, Room logs, DataStore settings.</span>
+        </div>
+        <div>
+          <strong>Free-tier beta stack</strong>
+          <span>Render Free, Neon Free, Cloudflare Pages Free.</span>
+        </div>
+        <div>
+          <strong>Honest launch state</strong>
+          <span>OAuth and Play billing stay gated until real credentials verify them.</span>
+        </div>
+      </section>
+
+      <section id="runtime" class="section runtime-section" aria-labelledby="runtime-title">
+        <div class="section-heading">
+          <p class="eyebrow">Live operations</p>
+          <h2 id="runtime-title">The phone is the control room.</h2>
+          <p>
+            ChatMod watches YouTube Live chat from a visible foreground service, applies local moderation rules, and gives creators fast controls for stream pressure.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="status-dot live"></span>
+            <h3>Foreground bot runtime</h3>
+            <p>Runtime context is persisted, recovered after service restarts, and logged with heartbeat, backoff, network, and stream-ended events.</p>
+          </article>
+          <article class="feature-card">
+            <span class="status-dot warn"></span>
+            <h3>Moderation that explains itself</h3>
+            <p>Blocked terms, links, repeats, caps, symbols, emoji, raids, warnings, strikes, and false-positive tuning all leave reviewable audit trails.</p>
+          </article>
+          <article class="feature-card">
+            <span class="status-dot info"></span>
+            <h3>Creator automation</h3>
+            <p>Commands, timers, presets, link lockdown, emergency mode, and subscriber-only recommendation messages stay reachable during the stream.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="stack" class="section stack-section" aria-labelledby="stack-title">
+        <div class="section-heading">
+          <p class="eyebrow">Full-stack, not fake-stack</p>
+          <h2 id="stack-title">Local-first moderation with a real backend.</h2>
+        </div>
+        <div class="stack-map" role="list" aria-label="ChatMod stack">
+          <div role="listitem">
+            <b>Android</b>
+            <span>Kotlin, Compose, Room, DataStore, WorkManager.</span>
+          </div>
+          <div role="listitem">
+            <b>Backend</b>
+            <span>Fastify, Prisma, Postgres, OpenAPI, Google OAuth custody.</span>
+          </div>
+          <div role="listitem">
+            <b>Beta hosting</b>
+            <span>Render Free API, Neon Free Postgres, Cloudflare Pages site.</span>
+          </div>
+          <div role="listitem">
+            <b>Owner controls</b>
+            <span>Account export/delete, YouTube disconnect, support diagnostics, log export.</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="beta" class="section beta-section" aria-labelledby="beta-title">
+        <div>
+          <p class="eyebrow">Closed beta path</p>
+          <h2 id="beta-title">Built for creators who stream from a lightweight setup.</h2>
+          <p>
+            The first beta stays free-first: sideload/internal builds, free-tier backend hosting, no paid analytics SDK, and no claims that need Play Console or Google OAuth approval before they are verified.
+          </p>
+        </div>
+        <form class="beta-form" aria-label="Beta interest form" data-beta-form data-beta-api="/feedback/beta-interest">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="creator@example.com" autocomplete="email" required />
+          <label for="creator-name">Creator name</label>
+          <input id="creator-name" name="creatorName" type="text" placeholder="Channel or creator name" autocomplete="name" maxlength="80" />
+          <label for="channel-url">YouTube channel</label>
+          <input id="channel-url" name="channelUrl" type="url" placeholder="https://www.youtube.com/@yourchannel" maxlength="300" />
+          <label for="beta-message">What should the beta solve?</label>
+          <textarea id="beta-message" name="message" rows="4" maxlength="500" placeholder="Optional: stream size, moderation pain, or feature you need first"></textarea>
+          <button type="submit" data-beta-button>Save interest</button>
+          <p class="form-note" role="status" aria-live="polite" data-beta-note>Beta interest is saved through the ChatMod backend support-event path.</p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>ChatMod Mobile</span>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="admin.html">Admin</a>
+      <a href="#beta">Beta status</a>
+    </footer>
+    <script src="script.js"></script>
+  </body>
+</html>

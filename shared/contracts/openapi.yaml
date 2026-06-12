@@ -1,0 +1,4151 @@
+openapi: 3.1.0
+info:
+  title: ChatMod Mobile API
+  version: 0.1.0
+  description: Backend contract for the phone-hosted YouTube Live moderation bot.
+servers:
+  - url: http://localhost:4100
+paths:
+  /health:
+    get:
+      summary: Service health
+      responses:
+        "200":
+          description: API health payload
+  /health/ready:
+    get:
+      summary: Service readiness
+      responses:
+        "200":
+          description: API dependencies are ready or optional in this environment
+        "503":
+          description: Required dependency is unavailable
+  /app/compatibility:
+    get:
+      summary: Check whether an Android app build is supported
+      parameters:
+        - in: query
+          name: platform
+          required: true
+          schema:
+            type: string
+            enum:
+              - android
+        - in: query
+          name: versionName
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: versionCode
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        "200":
+          description: App compatibility status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppCompatibility"
+        "400":
+          description: Invalid compatibility query
+  /accounts/device-session:
+    post:
+      summary: Create or refresh a device session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceSessionRequest"
+      responses:
+        "200":
+          description: Session payload
+  /accounts/export:
+    get:
+      summary: Export account, profile, backup, support, API error, and entitlement data
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account export payload without raw OAuth token secrets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountExport"
+  /accounts/current:
+    delete:
+      summary: Delete the current account and associated cloud data
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account deletion result
+  /accounts/youtube/disconnect:
+    post:
+      summary: Disconnect stored YouTube OAuth account data
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: YouTube disconnect result
+  /entitlements/current:
+    get:
+      summary: Current subscription and feature entitlement
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current entitlement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntitlementSnapshot"
+  /entitlements/google-play/config:
+    get:
+      summary: Google Play billing configuration status
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Billing configuration status
+  /entitlements/google-play/validate:
+    post:
+      summary: Validate a Google Play subscription purchase
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Entitlement updated from purchase validation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - validation
+                  - entitlement
+                properties:
+                  validation:
+                    type: object
+                  entitlement:
+                    $ref: "#/components/schemas/EntitlementSnapshot"
+        "503":
+          description: Google Play billing is not configured
+  /profiles:
+    get:
+      summary: List channel profiles
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile list
+    post:
+      summary: Create channel profile
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Profile created
+        "403":
+          description: Current plan channel profile limit reached
+  /backups:
+    get:
+      summary: List cloud backups for the current account
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account-scoped backup list
+  /backups/moderation-profile:
+    post:
+      summary: Store a moderation profile backup
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Backup stored
+  /backups/settings:
+    post:
+      summary: Store a validated command and timer settings backup
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Settings backup stored
+  /backups/{id}:
+    delete:
+      summary: Delete a cloud backup for the current account
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Backup deleted
+  /backups/{id}/restore:
+    post:
+      summary: Restore a settings backup into commands and timers
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Settings backup restored
+        "403":
+          description: Current plan command, timed-message, or channel profile limit reached
+  /commands:
+    get:
+      summary: List custom commands
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Command list
+    post:
+      summary: Create custom command
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Command created
+        "403":
+          description: Current plan command limit reached
+  /commands/evaluate:
+    post:
+      summary: Evaluate a chat message against stored commands
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Command evaluation result
+  /commands/{id}:
+    put:
+      summary: Create or replace a custom command using a stable client id
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Command upserted
+        "403":
+          description: Current plan command limit reached
+    patch:
+      summary: Update custom command
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Command updated
+    delete:
+      summary: Delete custom command
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Command deleted
+  /commands/{id}/send:
+    post:
+      summary: Send a stored custom command response to a selected live chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommandManualSendRequest"
+      responses:
+        "200":
+          description: Command response sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommandManualSendResult"
+  /faq-entries:
+    get:
+      summary: List Creator FAQ knowledge-base entries for a channel profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: profileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: FAQ entry list
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - faqEntries
+                properties:
+                  faqEntries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FaqEntry"
+        "403":
+          description: Creator AI FAQ entitlement is required
+  /faq-entries/suggest-reply:
+    post:
+      summary: Suggest a manual FAQ reply from creator-provided knowledge-base entries
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaqReplySuggestionRequest"
+      responses:
+        "200":
+          description: Manual FAQ reply suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaqReplySuggestionResult"
+        "403":
+          description: Creator AI FAQ entitlement is required
+  /faq-entries/{id}:
+    put:
+      summary: Create or replace a Creator FAQ knowledge-base entry
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaqEntryInput"
+      responses:
+        "200":
+          description: FAQ entry saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaqEntry"
+        "403":
+          description: Creator AI FAQ entitlement is required
+    delete:
+      summary: Delete a Creator FAQ knowledge-base entry
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: FAQ entry deleted
+  /timers:
+    get:
+      summary: List timed messages
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Timer list
+    post:
+      summary: Create timed message
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimerInput"
+      responses:
+        "201":
+          description: Timer created
+        "403":
+          description: Current plan timed-message limit reached
+  /timers/due:
+    post:
+      summary: Find timed messages due to send
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DueTimerRequest"
+      responses:
+        "200":
+          description: Due timer list
+  /timers/{id}:
+    put:
+      summary: Create or replace a timed message using a stable client id
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimerInput"
+      responses:
+        "200":
+          description: Timer upserted
+        "403":
+          description: Current plan timed-message limit reached
+    patch:
+      summary: Update timed message
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimerPatch"
+      responses:
+        "200":
+          description: Timer updated
+    delete:
+      summary: Delete timed message
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Timer deleted
+  /timers/{id}/mark-sent:
+    post:
+      summary: Mark a timed message as sent
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Timer updated
+  /rule-presets:
+    get:
+      summary: List moderation rule presets
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule preset list
+    post:
+      summary: Create a moderation rule preset
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Rule preset created
+        "403":
+          description: Current plan channel profile limit or advanced-filter entitlement reached
+  /rule-presets/export:
+    get:
+      summary: Export moderation rule presets as a portable ChatMod JSON bundle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: profileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Rule preset export bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RulePresetExportBundle"
+  /rule-presets/import:
+    post:
+      summary: Import moderation rule presets from a portable ChatMod JSON bundle
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule preset import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RulePresetImportResult"
+        "400":
+          description: Invalid or unsupported preset bundle
+        "403":
+          description: Current plan channel profile limit or advanced-filter entitlement reached
+  /rule-presets/templates:
+    get:
+      summary: List curated moderation rule preset templates
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule preset template list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RulePresetTemplateList"
+  /rule-presets/{id}:
+    put:
+      summary: Create or replace a moderation rule preset using a stable client id
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule preset upserted
+        "403":
+          description: Current plan channel profile limit or advanced-filter entitlement reached
+    patch:
+      summary: Update a moderation rule preset
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule preset updated
+        "403":
+          description: Current plan advanced-filter entitlement reached
+    delete:
+      summary: Delete a moderation rule preset
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Rule preset deleted
+  /stream-sessions:
+    get:
+      summary: List stream sessions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stream session list
+  /stream-sessions/analytics/summary:
+    get:
+      summary: Summarize cross-stream audit analytics from synced stream-session logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: profileId
+          schema:
+            type: string
+        - in: query
+          name: days
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        "200":
+          description: Cross-stream analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamSessionAnalyticsSummary"
+  /stream-sessions/{id}:
+    put:
+      summary: Create or update a stream session using a stable phone session id
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stream session upserted
+  /stream-sessions/{id}/end:
+    post:
+      summary: Mark a stream session as ended
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stream session ended
+  /stream-sessions/{id}/logs:
+    get:
+      summary: Get messages, moderation actions, and runtime events for a stream session
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stream session log bundle
+  /stream-sessions/{id}/ai-summary:
+    get:
+      summary: Generate a Creator-gated local heuristic after-stream chat summary
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Local after-stream chat summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamChatSummary"
+        "403":
+          description: Creator AI chat summary entitlement is required
+  /stream-sessions/{id}/export:
+    get:
+      summary: Export a stream session audit log as JSON or CSV
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum:
+              - json
+              - csv
+            default: json
+      responses:
+        "200":
+          description: Stream session export
+  /stream-sessions/{id}/messages:
+    post:
+      summary: Record or update a YouTube chat message for a stream session
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Chat message recorded
+  /stream-sessions/{id}/actions:
+    post:
+      summary: Record a moderation action with reason and confidence
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Moderation action recorded
+  /stream-sessions/{id}/actions/{actionId}/review:
+    patch:
+      summary: Mark a moderation action review outcome, such as false positive
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Moderation action review saved
+  /stream-sessions/{id}/runtime-events:
+    post:
+      summary: Record a bot runtime event for a stream session
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Runtime event recorded
+  /overlays/profiles/{profileId}:
+    get:
+      summary: Get OBS/browser overlay configuration for a channel profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Overlay configuration and entitlement status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverlayConfig"
+    put:
+      summary: Create or update a Pro-gated OBS/browser overlay configuration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profileId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OverlayConfigUpdate"
+      responses:
+        "200":
+          description: Overlay configuration saved; public URL is returned only when a token is created or rotated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverlayConfigMutation"
+        "403":
+          description: OBS/browser overlay requires Pro or Creator plan
+  /overlays/profiles/{profileId}/rotate-token:
+    post:
+      summary: Rotate the read-only public OBS overlay token
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Overlay token rotated and a fresh public URL returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverlayConfigMutation"
+        "403":
+          description: OBS/browser overlay requires Pro or Creator plan
+  /overlays/public/{token}:
+    get:
+      summary: Public read-only HTML overlay for OBS browser sources
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+            pattern: "^cmo_[A-Za-z0-9_-]{32,128}$"
+      responses:
+        "200":
+          description: Transparent-friendly overlay HTML
+          content:
+            text/html:
+              schema:
+                type: string
+        "404":
+          description: Overlay token not found
+  /overlays/public/{token}/state:
+    get:
+      summary: Public read-only overlay state for OBS polling
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+            pattern: "^cmo_[A-Za-z0-9_-]{32,128}$"
+      responses:
+        "200":
+          description: Sanitized overlay state from stream-session audit logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverlayState"
+        "404":
+          description: Overlay token not found
+  /team/profiles/{profileId}/members:
+    get:
+      summary: List invited, active, and revoked team moderators for a channel profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Profile team member list and seat limits
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - profileId
+                  - teamSeats
+                  - extraSeats
+                  - members
+                properties:
+                  profileId:
+                    type: string
+                  teamSeats:
+                    type: integer
+                  extraSeats:
+                    type: integer
+                  members:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TeamMember"
+  /team/profiles/{profileId}/invites:
+    post:
+      summary: Create a plan-gated team moderator invite for a channel profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profileId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInviteCreate"
+      responses:
+        "201":
+          description: Team invite created; invite code is returned once
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamInviteResult"
+        "403":
+          description: Team moderator seat limit reached for current plan
+  /team/profiles/{profileId}/members/{memberId}:
+    delete:
+      summary: Revoke a team moderator invite or active membership
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profileId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team member revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - member
+                properties:
+                  member:
+                    $ref: "#/components/schemas/TeamMember"
+  /team/invites/redeem:
+    post:
+      summary: Redeem a team moderator invite on another Android device
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInviteRedeem"
+      responses:
+        "200":
+          description: Team membership activated for the current device
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - membership
+                properties:
+                  membership:
+                    $ref: "#/components/schemas/TeamMembership"
+        "409":
+          description: Invite has already been redeemed by another device
+  /team/memberships:
+    get:
+      summary: List team memberships redeemed by the current device
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Active team memberships for this device
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - memberships
+                properties:
+                  memberships:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TeamMembership"
+  /user-profiles:
+    get:
+      summary: List viewer profiles with warning and strike counts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: profileId
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileList"
+  /user-profiles/warnings:
+    post:
+      summary: Record a viewer warning and optional live-chat warning message
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserWarningRequest"
+      responses:
+        "201":
+          description: User warning recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWarningResult"
+  /user-profiles/{id}/notes:
+    patch:
+      summary: Update moderator notes for a viewer profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileNotesRequest"
+      responses:
+        "200":
+          description: User profile notes updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - user
+                properties:
+                  user:
+                    $ref: "#/components/schemas/UserProfileSummary"
+        "404":
+          description: User profile not found
+  /user-profiles/{id}/hide:
+    post:
+      summary: Permanently hide a viewer from the selected live chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserHideRequest"
+      responses:
+        "200":
+          description: User hidden from live chat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserHideResult"
+        "404":
+          description: User profile not found
+  /user-profiles/{id}/timeout:
+    post:
+      summary: Temporarily time out a viewer from the selected live chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserTimeoutRequest"
+      responses:
+        "200":
+          description: User timed out from live chat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTimeoutResult"
+        "404":
+          description: User profile not found
+  /user-profiles/{id}/unban:
+    post:
+      summary: Undo a ChatMod-created live chat ban or timeout when YouTube returned a saved ban id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUnbanRequest"
+      responses:
+        "200":
+          description: User unbanned from live chat and audited in profile history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserUnbanResult"
+        "404":
+          description: User profile not found
+        "409":
+          description: YouTube account is not connected
+  /user-profiles/{id}/whitelist:
+    post:
+      summary: Add a viewer profile to the permanent or temporary whitelist
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserWhitelistRequest"
+      responses:
+        "200":
+          description: User added to whitelist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWhitelistResult"
+        "404":
+          description: User profile not found
+  /integrations/discord/webhook:
+    get:
+      summary: Get safe Discord webhook alert settings for a profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: profileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Discord webhook settings without the raw webhook URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscordWebhookConfig"
+    put:
+      summary: Create or update Discord webhook alert settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscordWebhookUpsertRequest"
+      responses:
+        "200":
+          description: Discord webhook settings saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscordWebhookConfig"
+        "400":
+          description: Invalid Discord webhook URL
+        "403":
+          description: Discord alerts require Pro or Creator plan
+    delete:
+      summary: Delete Discord webhook alert settings for a profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: profileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Discord webhook settings deleted
+  /integrations/discord/test:
+    post:
+      summary: Send a test Discord alert for a configured profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - profileId
+              properties:
+                profileId:
+                  type: string
+      responses:
+        "200":
+          description: Test alert result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscordAlertResult"
+        "403":
+          description: Discord alerts require Pro or Creator plan
+        "409":
+          description: Discord webhook is not configured or enabled
+  /integrations/discord/alerts:
+    post:
+      summary: Send or skip a runtime Discord alert based on profile settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscordAlertRequest"
+      responses:
+        "200":
+          description: Runtime alert delivery result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscordAlertResult"
+        "403":
+          description: Discord alerts require Pro or Creator plan
+  /youtube/connect-url:
+    get:
+      summary: Get the OAuth connection URL
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OAuth URL payload
+  /youtube/account:
+    get:
+      summary: Get connected YouTube account and channel metadata
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Connected YouTube account status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeAccountStatus"
+  /youtube/oauth/callback:
+    get:
+      summary: Exchange YouTube OAuth callback code
+      responses:
+        "200":
+          description: YouTube connection result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeConnectionResult"
+        "503":
+          description: YouTube OAuth is not configured
+  /youtube/live-chat/discover:
+    post:
+      summary: Discover active YouTube Live chat and stream-selection metadata
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeBroadcastDiscoveryRequest"
+      responses:
+        "200":
+          description: Active live chat result with active/upcoming broadcast candidates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeLiveChatDiscoveryResult"
+        "409":
+          description: YouTube account is not connected or the requested channel does not match the connected account
+  /youtube/live-chat/broadcasts:
+    post:
+      summary: List active and scheduled YouTube broadcasts for stream selection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeBroadcastDiscoveryRequest"
+      responses:
+        "200":
+          description: Broadcast candidate list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeBroadcastList"
+        "409":
+          description: YouTube account is not connected or the requested channel does not match the connected account
+  /youtube/live-chat/send-test:
+    post:
+      summary: Send a test message to YouTube Live chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeTestMessageRequest"
+      responses:
+        "200":
+          description: Sent message result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeTestMessageResult"
+        "400":
+          description: Test message failed local safety validation
+        "409":
+          description: YouTube account is not connected
+  /youtube/live-chat/messages:
+    post:
+      summary: Poll YouTube Live chat messages for the phone-hosted runtime
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeLiveChatMessagesRequest"
+      responses:
+        "200":
+          description: Live chat message page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeLiveChatMessagePage"
+        "409":
+          description: YouTube account is not connected
+  /youtube/live-chat/messages/send:
+    post:
+      summary: Send a runtime bot message to YouTube Live chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeMessageSendRequest"
+      responses:
+        "200":
+          description: Sent runtime message result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeMessageSendResult"
+        "400":
+          description: Runtime message failed local safety validation
+        "409":
+          description: YouTube account is not connected
+  /youtube/live-chat/messages/delete:
+    post:
+      summary: Delete a selected YouTube Live chat message
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeMessageDeleteRequest"
+      responses:
+        "200":
+          description: Deleted message result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeMessageDeleteResult"
+        "409":
+          description: YouTube account is not connected
+  /youtube/live-chat/users/hide:
+    post:
+      summary: Hide or temporarily time out a YouTube Live chat user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeUserHideRequest"
+      responses:
+        "200":
+          description: User hide or timeout result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeUserHideResult"
+        "409":
+          description: YouTube account is not connected
+  /youtube/live-chat/users/unban:
+    post:
+      summary: Undo a YouTube Live chat ban by live chat ban id
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YouTubeUserUnbanRequest"
+      responses:
+        "200":
+          description: Unban result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YouTubeUserUnbanResult"
+        "409":
+          description: YouTube account is not connected
+  /moderation/rules/evaluate:
+    post:
+      summary: Evaluate one chat message against a moderation profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluateMessageRequest"
+      responses:
+        "200":
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModerationDecision"
+        "403":
+          description: Current plan advanced-filter entitlement reached
+  /moderation/suggestions/evaluate:
+    post:
+      summary: Evaluate an AI-ready manual moderation suggestion using the free local heuristic provider
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerationSuggestionRequest"
+      responses:
+        "200":
+          description: Manual moderation suggestion with confidence and explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModerationSuggestionResult"
+        "403":
+          description: Creator AI suggestion entitlement is required
+        "429":
+          description: Creator AI suggestion daily usage limit reached
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                  - message
+                  - usage
+                properties:
+                  error:
+                    type: string
+                    enum:
+                      - AI_SUGGESTION_LIMIT_REACHED
+                  message:
+                    type: string
+                  usage:
+                    $ref: "#/components/schemas/ModerationSuggestionUsage"
+  /logs/support-events:
+    get:
+      summary: List support diagnostic events for current device
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Support event list
+    post:
+      summary: Record a support diagnostic event
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Support event recorded
+  /logs/api-errors:
+    get:
+      summary: List recent API errors for the current device
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Device-scoped API error list with request IDs for support correlation
+  /analytics/events:
+    get:
+      summary: List opt-in usage analytics events for the current device
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Device-scoped usage analytics events
+    post:
+      summary: Record an opt-in usage analytics event
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyticsEventRequest"
+      responses:
+        "201":
+          description: Usage analytics event recorded
+        "400":
+          description: Event shape or property names were rejected
+  /feedback/beta:
+    get:
+      summary: List beta feedback submitted from the current device
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Device-scoped beta feedback notes
+    post:
+      summary: Submit beta feedback from the Android support screen
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BetaFeedbackRequest"
+      responses:
+        "201":
+          description: Beta feedback recorded
+        "400":
+          description: Feedback shape or context fields were rejected
+  /feedback/beta-interest:
+    post:
+      summary: Save public beta interest from the launch site
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BetaInterestRequest"
+      responses:
+        "201":
+          description: Beta interest saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BetaInterestResult"
+        "400":
+          description: Beta interest payload was rejected
+        "429":
+          description: Too many beta interest submissions
+  /admin/support/users:
+    get:
+      summary: Admin support lookup by device id
+      security:
+        - adminApiKey: []
+      parameters:
+        - in: query
+          name: deviceId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: installId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Device-scoped support snapshot with entitlement, subscription, diagnostics, and API errors
+        "401":
+          description: Missing or invalid admin API key
+  /admin/support/devices/{deviceId}:
+    get:
+      summary: Admin device/session support lookup
+      security:
+        - adminApiKey: []
+      parameters:
+        - in: path
+          name: deviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Device-scoped support snapshot
+        "401":
+          description: Missing or invalid admin API key
+  /admin/support/subscriptions/{deviceId}:
+    get:
+      summary: Admin subscription and entitlement lookup
+      security:
+        - adminApiKey: []
+      parameters:
+        - in: path
+          name: deviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Device-scoped entitlement/subscription snapshot
+        "401":
+          description: Missing or invalid admin API key
+  /admin/support/entitlements/manual-adjust:
+    post:
+      summary: Admin manual entitlement adjustment
+      security:
+        - adminApiKey: []
+      responses:
+        "200":
+          description: Entitlement updated and support audit event recorded
+        "401":
+          description: Missing or invalid admin API key
+  /admin/support/tickets/metadata:
+    post:
+      summary: Admin support ticket metadata event
+      security:
+        - adminApiKey: []
+      responses:
+        "201":
+          description: Support ticket metadata stored as a support event
+        "401":
+          description: Missing or invalid admin API key
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    adminApiKey:
+      type: apiKey
+      in: header
+      name: x-admin-api-key
+  schemas:
+    AppCompatibility:
+      type: object
+      required:
+        - platform
+        - currentVersionName
+        - currentVersionCode
+        - minimumSupportedVersionName
+        - minimumSupportedVersionCode
+        - latestVersionName
+        - latestVersionCode
+        - status
+        - updateRequired
+        - updateRecommended
+        - message
+      properties:
+        platform:
+          type: string
+          enum:
+            - android
+        currentVersionName:
+          type: string
+        currentVersionCode:
+          type: integer
+        minimumSupportedVersionName:
+          type: string
+        minimumSupportedVersionCode:
+          type: integer
+        latestVersionName:
+          type: string
+        latestVersionCode:
+          type: integer
+        status:
+          type: string
+          enum:
+            - compatible
+            - update_recommended
+            - update_required
+        updateRequired:
+          type: boolean
+        updateRecommended:
+          type: boolean
+        message:
+          type: string
+        downloadUrl:
+          type:
+            - string
+            - "null"
+          format: uri
+    DeviceSessionRequest:
+      type: object
+      required:
+        - deviceId
+        - installId
+      properties:
+        deviceId:
+          type: string
+        installId:
+          type: string
+        appVersion:
+          type: string
+    EntitlementSnapshot:
+      type: object
+      required:
+        - plan
+        - status
+        - source
+        - productId
+        - currentPeriodEndsAt
+        - features
+      properties:
+        plan:
+          type: string
+          enum:
+            - starter
+            - pro
+            - creator
+        status:
+          type: string
+        source:
+          type: string
+        productId:
+          type:
+            - string
+            - "null"
+        currentPeriodEndsAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        features:
+          type: object
+          required:
+            - customBotName
+            - channelProfiles
+            - commandProfiles
+            - timedMessages
+            - localHistoryLimit
+            - cloudBackups
+            - discordAlerts
+            - obsOverlay
+            - teamSeats
+            - emergencyMode
+            - advancedFilters
+            - presetBundles
+            - aiSuggestions
+            - aiSuggestionDailyLimit
+          properties:
+            customBotName:
+              type: boolean
+            channelProfiles:
+              type: integer
+              minimum: 1
+            commandProfiles:
+              description: Number of command profiles allowed, or null when the plan is uncapped.
+              type:
+                - integer
+                - "null"
+              minimum: 0
+            timedMessages:
+              description: Number of timed messages allowed, or null when the plan is uncapped.
+              type:
+                - integer
+                - "null"
+              minimum: 0
+            localHistoryLimit:
+              description: Maximum local Room log and viewer-history rows the Android dashboard should expose for the active plan.
+              type: integer
+              minimum: 1
+            cloudBackups:
+              type: boolean
+            discordAlerts:
+              type: boolean
+            obsOverlay:
+              description: Whether the account can configure tokenized OBS/browser overlays.
+              type: boolean
+            teamSeats:
+              type: integer
+              minimum: 1
+            emergencyMode:
+              type: boolean
+            advancedFilters:
+              type: boolean
+            presetBundles:
+              type: boolean
+            aiSuggestions:
+              type: boolean
+            aiSuggestionDailyLimit:
+              description: Maximum manual review-assistant suggestions allowed per UTC day for the active plan.
+              type: integer
+              minimum: 0
+    OverlayConfigUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        enabled:
+          type: boolean
+        theme:
+          type: string
+          enum:
+            - control_room
+            - transparent_minimal
+            - high_contrast
+        activeSessionId:
+          type:
+            - string
+            - "null"
+        showModerationActions:
+          type: boolean
+        showRuntimeStatus:
+          type: boolean
+        showViewerStats:
+          type: boolean
+        showRecentChat:
+          description: Off by default so public overlay URLs do not expose chat text unless the creator opts in.
+          type: boolean
+    OverlayConfig:
+      type: object
+      required:
+        - profileId
+        - configured
+        - enabled
+        - theme
+        - activeSessionId
+        - showModerationActions
+        - showRuntimeStatus
+        - showViewerStats
+        - showRecentChat
+        - tokenPreview
+        - createdAt
+        - updatedAt
+      properties:
+        profileId:
+          type: string
+        configured:
+          type: boolean
+        enabled:
+          type: boolean
+        theme:
+          type: string
+          enum:
+            - control_room
+            - transparent_minimal
+            - high_contrast
+        activeSessionId:
+          type:
+            - string
+            - "null"
+        showModerationActions:
+          type: boolean
+        showRuntimeStatus:
+          type: boolean
+        showViewerStats:
+          type: boolean
+        showRecentChat:
+          type: boolean
+        tokenPreview:
+          type:
+            - string
+            - "null"
+        createdAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        updatedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        allowed:
+          type: boolean
+        requiredPlan:
+          type:
+            - string
+            - "null"
+    OverlayConfigMutation:
+      allOf:
+        - $ref: "#/components/schemas/OverlayConfig"
+        - type: object
+          required:
+            - publicUrl
+            - publicPath
+            - tokenRotated
+          properties:
+            publicUrl:
+              type:
+                - string
+                - "null"
+              format: uri
+            publicPath:
+              type:
+                - string
+                - "null"
+            tokenRotated:
+              type: boolean
+    OverlayState:
+      type: object
+      required:
+        - generatedAt
+        - enabled
+        - status
+        - overlay
+        - session
+        - metrics
+        - recentActions
+        - recentRuntimeEvents
+        - recentMessages
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        enabled:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - disabled
+            - waiting_for_stream
+            - live
+            - ended
+        overlay:
+          type: object
+        session:
+          type:
+            - object
+            - "null"
+        metrics:
+          type: object
+          required:
+            - messages
+            - uniqueChatters
+            - moderationActions
+            - destructiveActions
+            - spamAttempts
+            - commandsSent
+            - timersSent
+            - reconnectEvents
+          properties:
+            messages:
+              type: integer
+            uniqueChatters:
+              type: integer
+            moderationActions:
+              type: integer
+            destructiveActions:
+              type: integer
+            spamAttempts:
+              type: integer
+            commandsSent:
+              type: integer
+            timersSent:
+              type: integer
+            reconnectEvents:
+              type: integer
+        recentActions:
+          type: array
+          items:
+            type: object
+        recentRuntimeEvents:
+          type: array
+          items:
+            type: object
+        recentMessages:
+          type: array
+          items:
+            type: object
+    TeamMemberPermissions:
+      type: object
+      required:
+        - viewQueue
+        - moderate
+        - manageWarnings
+        - viewAnalytics
+      properties:
+        viewQueue:
+          type: boolean
+        moderate:
+          type: boolean
+        manageWarnings:
+          type: boolean
+        viewAnalytics:
+          type: boolean
+    TeamInviteCreate:
+      type: object
+      required:
+        - displayName
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        role:
+          type: string
+          enum:
+            - moderator
+            - producer
+          default: moderator
+        permissions:
+          $ref: "#/components/schemas/TeamMemberPermissions"
+    TeamInviteRedeem:
+      type: object
+      required:
+        - inviteCode
+      properties:
+        inviteCode:
+          type: string
+          minLength: 12
+          maxLength: 120
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 80
+    TeamMember:
+      type: object
+      required:
+        - id
+        - profileId
+        - displayName
+        - role
+        - status
+        - inviteCodePreview
+        - memberDeviceId
+        - permissions
+        - acceptedAt
+        - revokedAt
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        displayName:
+          type: string
+        role:
+          type: string
+          enum:
+            - moderator
+            - producer
+        status:
+          type: string
+          enum:
+            - invited
+            - active
+            - revoked
+        inviteCodePreview:
+          type: string
+        memberDeviceId:
+          type:
+            - string
+            - "null"
+        permissions:
+          $ref: "#/components/schemas/TeamMemberPermissions"
+        acceptedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        revokedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TeamInviteResult:
+      type: object
+      required:
+        - member
+        - inviteCode
+      properties:
+        member:
+          $ref: "#/components/schemas/TeamMember"
+        inviteCode:
+          description: Full invite code returned only at creation time. Store or share it immediately.
+          type: string
+    TeamMembership:
+      allOf:
+        - $ref: "#/components/schemas/TeamMember"
+        - type: object
+          required:
+            - profileName
+            - channelId
+            - ownerDeviceId
+          properties:
+            profileName:
+              type: string
+            channelId:
+              type: string
+            ownerDeviceId:
+              type: string
+    FaqEntryInput:
+      type: object
+      required:
+        - profileId
+        - question
+        - answer
+        - keywords
+        - enabled
+      properties:
+        profileId:
+          type: string
+        question:
+          type: string
+          minLength: 3
+          maxLength: 160
+        answer:
+          description: Creator-provided reply text safe for YouTube Live chat.
+          type: string
+          minLength: 1
+          maxLength: 200
+        keywords:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            minLength: 2
+            maxLength: 40
+        enabled:
+          type: boolean
+    FaqEntry:
+      allOf:
+        - $ref: "#/components/schemas/FaqEntryInput"
+        - type: object
+          required:
+            - id
+            - createdAt
+            - updatedAt
+          properties:
+            id:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    FaqReplySuggestionRequest:
+      type: object
+      required:
+        - profileId
+        - message
+      properties:
+        profileId:
+          type: string
+        message:
+          type: object
+          required:
+            - text
+          properties:
+            text:
+              type: string
+              minLength: 1
+              maxLength: 2000
+            authorName:
+              type: string
+              maxLength: 120
+        minConfidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.45
+    FaqReplySuggestionResult:
+      type: object
+      required:
+        - provider
+        - matched
+        - manualApprovalRequired
+        - entryId
+        - question
+        - replyText
+        - confidence
+        - matchedKeywords
+        - explanation
+      properties:
+        provider:
+          type: string
+          enum:
+            - local-heuristic
+        matched:
+          type: boolean
+        manualApprovalRequired:
+          type: boolean
+          enum:
+            - true
+        entryId:
+          type:
+            - string
+            - "null"
+        question:
+          type:
+            - string
+            - "null"
+        replyText:
+          type:
+            - string
+            - "null"
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        matchedKeywords:
+          type: array
+          items:
+            type: string
+        explanation:
+          type: string
+    TimerInput:
+      type: object
+      required:
+        - profileId
+        - name
+        - message
+        - intervalMinutes
+      properties:
+        profileId:
+          type: string
+        name:
+          type: string
+          maxLength: 80
+        message:
+          type: string
+          maxLength: 500
+        intervalMinutes:
+          type: integer
+          minimum: 1
+          maximum: 240
+        minChatMessages:
+          type: integer
+          minimum: 0
+          maximum: 500
+        quietStartMinutes:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+          maximum: 1440
+        quietEndMinutes:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 1440
+        enabled:
+          type: boolean
+    TimerPatch:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        message:
+          type: string
+          maxLength: 500
+        intervalMinutes:
+          type: integer
+          minimum: 1
+          maximum: 240
+        minChatMessages:
+          type: integer
+          minimum: 0
+          maximum: 500
+        quietStartMinutes:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+          maximum: 1440
+        quietEndMinutes:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 1440
+        enabled:
+          type: boolean
+    DueTimerRequest:
+      type: object
+      required:
+        - profileId
+        - messagesSinceLastTimer
+      properties:
+        profileId:
+          type: string
+        messagesSinceLastTimer:
+          type: integer
+          minimum: 0
+        now:
+          type: string
+          format: date-time
+        streamStartedAt:
+          type: string
+          format: date-time
+    AccountExport:
+      type: object
+      required:
+        - exportedAt
+        - account
+        - devices
+        - linkedAccounts
+        - profiles
+      properties:
+        exportedAt:
+          type: string
+          format: date-time
+        account:
+          type: object
+        devices:
+          type: array
+          items:
+            type: object
+        linkedAccounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/LinkedAccountExport"
+        profiles:
+          type: array
+          items:
+            type: object
+        subscription:
+          oneOf:
+            - type: object
+            - type: "null"
+        supportEvents:
+          type: array
+          items:
+            type: object
+        apiErrors:
+          type: array
+          items:
+            type: object
+        auditLogs:
+          type: array
+          items:
+            type: object
+    LinkedAccountExport:
+      type: object
+      required:
+        - id
+        - provider
+        - providerAccountId
+        - channelId
+        - channelTitle
+        - hasAccessToken
+        - hasRefreshToken
+        - tokenExpiresAt
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        providerAccountId:
+          type: string
+        channelId:
+          type:
+            - string
+            - "null"
+        channelTitle:
+          type:
+            - string
+            - "null"
+        hasAccessToken:
+          type: boolean
+        hasRefreshToken:
+          type: boolean
+        tokenExpiresAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    DiscordWebhookConfig:
+      type: object
+      required:
+        - profileId
+        - configured
+        - enabled
+        - alertModerationActions
+        - alertRuntimeStatus
+        - createdAt
+        - updatedAt
+      properties:
+        profileId:
+          type: string
+        configured:
+          type: boolean
+        enabled:
+          type: boolean
+        alertModerationActions:
+          type: boolean
+        alertRuntimeStatus:
+          type: boolean
+        createdAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        updatedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+    DiscordWebhookUpsertRequest:
+      type: object
+      required:
+        - profileId
+        - enabled
+        - alertModerationActions
+        - alertRuntimeStatus
+      properties:
+        profileId:
+          type: string
+        webhookUrl:
+          type: string
+          format: uri
+        enabled:
+          type: boolean
+        alertModerationActions:
+          type: boolean
+        alertRuntimeStatus:
+          type: boolean
+    DiscordAlertRequest:
+      type: object
+      required:
+        - profileId
+        - eventType
+        - title
+        - detail
+      properties:
+        profileId:
+          type: string
+        eventType:
+          type: string
+          enum:
+            - moderation_action
+            - runtime_status
+            - system
+        title:
+          type: string
+          maxLength: 120
+        detail:
+          type: string
+          maxLength: 1000
+        severity:
+          type: string
+          enum:
+            - info
+            - warning
+            - critical
+          default: info
+        metadata:
+          type: object
+          additionalProperties: true
+    DiscordAlertResult:
+      type: object
+      required:
+        - sent
+        - profileId
+      properties:
+        sent:
+          type: boolean
+        skippedReason:
+          type:
+            - string
+            - "null"
+          enum:
+            - not_configured
+            - disabled
+            - moderation_alerts_disabled
+            - runtime_alerts_disabled
+            - null
+        sentAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        profileId:
+          type: string
+    YouTubeConnectionResult:
+      type: object
+      required:
+        - connected
+        - deviceId
+        - tokensStored
+        - linkedAccountId
+        - channelId
+        - channelTitle
+        - tokenExpiresAt
+        - scopes
+      properties:
+        connected:
+          type: boolean
+        deviceId:
+          type: string
+        tokensStored:
+          type: boolean
+        linkedAccountId:
+          type:
+            - string
+            - "null"
+        channelId:
+          type:
+            - string
+            - "null"
+        channelTitle:
+          type:
+            - string
+            - "null"
+        tokenExpiresAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        scopes:
+          type: array
+          items:
+            type: string
+    YouTubeAccountStatus:
+      type: object
+      required:
+        - configured
+        - source
+        - account
+      properties:
+        configured:
+          type: boolean
+        source:
+          type: string
+          enum:
+            - mock
+            - youtube-api
+        account:
+          $ref: "#/components/schemas/YouTubeLinkedAccountStatus"
+    YouTubeLinkedAccountStatus:
+      type: object
+      required:
+        - connected
+        - linkedAccountId
+        - channelId
+        - channelTitle
+        - hasAccessToken
+        - hasRefreshToken
+        - tokenExpiresAt
+      properties:
+        connected:
+          type: boolean
+        linkedAccountId:
+          type:
+            - string
+            - "null"
+        channelId:
+          type:
+            - string
+            - "null"
+        channelTitle:
+          type:
+            - string
+            - "null"
+        hasAccessToken:
+          type: boolean
+        hasRefreshToken:
+          type: boolean
+        tokenExpiresAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+    YouTubeBroadcastDiscoveryRequest:
+      type: object
+      required:
+        - channelId
+      properties:
+        channelId:
+          type: string
+          minLength: 1
+        includeScheduled:
+          type: boolean
+          default: true
+        maxResults:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+    YouTubeLiveChatDiscoveryResult:
+      type: object
+      required:
+        - activeChat
+        - broadcasts
+        - activeBroadcastCount
+        - needsSelection
+        - status
+        - source
+        - account
+        - requestedChannelId
+        - channelMismatch
+      properties:
+        activeChat:
+          oneOf:
+            - $ref: "#/components/schemas/YouTubeActiveChat"
+            - type: "null"
+        broadcasts:
+          type: array
+          items:
+            $ref: "#/components/schemas/YouTubeBroadcast"
+        activeBroadcastCount:
+          type: integer
+          minimum: 0
+        needsSelection:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - ready
+            - no_active_chat
+            - multiple_active_chats
+        source:
+          type: string
+          enum:
+            - mock
+            - youtube-api
+        account:
+          $ref: "#/components/schemas/YouTubeLinkedAccountStatus"
+        requestedChannelId:
+          type: string
+        channelMismatch:
+          type: boolean
+    YouTubeBroadcastList:
+      type: object
+      required:
+        - broadcasts
+        - source
+        - account
+        - requestedChannelId
+        - channelMismatch
+      properties:
+        broadcasts:
+          type: array
+          items:
+            $ref: "#/components/schemas/YouTubeBroadcast"
+        source:
+          type: string
+          enum:
+            - mock
+            - youtube-api
+        account:
+          $ref: "#/components/schemas/YouTubeLinkedAccountStatus"
+        requestedChannelId:
+          type: string
+        channelMismatch:
+          type: boolean
+    YouTubeActiveChat:
+      type: object
+      required:
+        - liveChatId
+        - videoId
+      properties:
+        liveChatId:
+          type: string
+        videoId:
+          type: string
+    YouTubeBroadcast:
+      type: object
+      required:
+        - videoId
+        - liveChatId
+        - title
+        - status
+        - scheduledStartTime
+        - actualStartTime
+      properties:
+        videoId:
+          type: string
+        liveChatId:
+          type:
+            - string
+            - "null"
+        title:
+          type: string
+        status:
+          type: string
+          enum:
+            - active
+            - upcoming
+            - completed
+        scheduledStartTime:
+          type:
+            - string
+            - "null"
+          format: date-time
+        actualStartTime:
+          type:
+            - string
+            - "null"
+          format: date-time
+    StreamSessionAnalyticsSummary:
+      type: object
+      required:
+        - generatedAt
+        - rangeDays
+        - sessionCount
+        - totalMessages
+        - totalModerationActions
+        - totalRuntimeEvents
+        - totalUptimeMillis
+        - reconnectEvents
+        - byStream
+        - byDay
+        - topChatters
+        - commandUsage
+        - ruleEffectiveness
+        - ruleEffectivenessByPreset
+        - spamAttemptsByDay
+        - uptimeByStream
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        rangeDays:
+          type: integer
+        sessionCount:
+          type: integer
+        totalMessages:
+          type: integer
+        totalModerationActions:
+          type: integer
+        totalRuntimeEvents:
+          type: integer
+        totalUptimeMillis:
+          type: integer
+        reconnectEvents:
+          type: integer
+        byStream:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsByStream"
+        byDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsByDay"
+        topChatters:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsChatter"
+        commandUsage:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsCommand"
+        ruleEffectiveness:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsRule"
+        ruleEffectivenessByPreset:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsRulePreset"
+        spamAttemptsByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsSpamDay"
+        uptimeByStream:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamAnalyticsUptime"
+    StreamChatSummary:
+      type: object
+      required:
+        - provider
+        - sessionId
+        - generatedAt
+        - title
+        - summary
+        - highlights
+        - topQuestions
+        - topChatters
+        - moderationNotes
+        - suggestedFollowUps
+        - stats
+      properties:
+        provider:
+          type: string
+          enum:
+            - local-heuristic
+        sessionId:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        title:
+          type:
+            - string
+            - "null"
+        summary:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+        topQuestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamChatSummaryQuestion"
+        topChatters:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamChatSummaryChatter"
+        moderationNotes:
+          type: array
+          items:
+            type: string
+        suggestedFollowUps:
+          type: array
+          items:
+            type: string
+        stats:
+          $ref: "#/components/schemas/StreamChatSummaryStats"
+    StreamChatSummaryQuestion:
+      type: object
+      required:
+        - question
+        - count
+      properties:
+        question:
+          type: string
+        count:
+          type: integer
+          minimum: 1
+    StreamChatSummaryChatter:
+      type: object
+      required:
+        - authorChannelId
+        - authorName
+        - messageCount
+      properties:
+        authorChannelId:
+          type: string
+        authorName:
+          type: string
+        messageCount:
+          type: integer
+          minimum: 0
+    StreamChatSummaryStats:
+      type: object
+      required:
+        - messageCount
+        - uniqueChatters
+        - moderationActionCount
+        - destructiveActionCount
+      properties:
+        messageCount:
+          type: integer
+          minimum: 0
+        uniqueChatters:
+          type: integer
+          minimum: 0
+        moderationActionCount:
+          type: integer
+          minimum: 0
+        destructiveActionCount:
+          type: integer
+          minimum: 0
+    StreamAnalyticsByStream:
+      type: object
+      required:
+        - sessionId
+        - title
+        - videoId
+        - startedAt
+        - endedAt
+        - messageCount
+        - uniqueChatters
+        - moderationActionCount
+        - destructiveActionCount
+        - spamAttemptCount
+        - commandCount
+        - timerCount
+        - reconnectEvents
+        - uptimeMillis
+      properties:
+        sessionId:
+          type: string
+        title:
+          type:
+            - string
+            - "null"
+        videoId:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        messageCount:
+          type: integer
+        uniqueChatters:
+          type: integer
+        moderationActionCount:
+          type: integer
+        destructiveActionCount:
+          type: integer
+        spamAttemptCount:
+          type: integer
+        commandCount:
+          type: integer
+        timerCount:
+          type: integer
+        reconnectEvents:
+          type: integer
+        uptimeMillis:
+          type: integer
+    StreamAnalyticsByDay:
+      type: object
+      required:
+        - day
+        - streamCount
+        - messageCount
+        - moderationActionCount
+        - spamAttemptCount
+        - reconnectEvents
+        - uptimeMillis
+      properties:
+        day:
+          type: string
+        streamCount:
+          type: integer
+        messageCount:
+          type: integer
+        moderationActionCount:
+          type: integer
+        spamAttemptCount:
+          type: integer
+        reconnectEvents:
+          type: integer
+        uptimeMillis:
+          type: integer
+    StreamAnalyticsChatter:
+      type: object
+      required:
+        - authorChannelId
+        - authorName
+        - messageCount
+        - moderationActionCount
+      properties:
+        authorChannelId:
+          type: string
+        authorName:
+          type: string
+        messageCount:
+          type: integer
+        moderationActionCount:
+          type: integer
+    StreamAnalyticsCommand:
+      type: object
+      required:
+        - commandId
+        - trigger
+        - count
+      properties:
+        commandId:
+          type: string
+        trigger:
+          type:
+            - string
+            - "null"
+        count:
+          type: integer
+    StreamAnalyticsRule:
+      type: object
+      required:
+        - rule
+        - matchCount
+        - destructiveActionCount
+        - falsePositiveCount
+      properties:
+        rule:
+          type: string
+        matchCount:
+          type: integer
+        destructiveActionCount:
+          type: integer
+        falsePositiveCount:
+          type: integer
+    StreamAnalyticsRulePreset:
+      type: object
+      required:
+        - presetId
+        - presetName
+        - presetVersion
+        - rule
+        - matchCount
+        - destructiveActionCount
+        - falsePositiveCount
+      properties:
+        presetId:
+          type: string
+        presetName:
+          type:
+            - string
+            - "null"
+        presetVersion:
+          type:
+            - string
+            - "null"
+        rule:
+          type: string
+        matchCount:
+          type: integer
+        destructiveActionCount:
+          type: integer
+        falsePositiveCount:
+          type: integer
+    StreamAnalyticsSpamDay:
+      type: object
+      required:
+        - day
+        - count
+      properties:
+        day:
+          type: string
+        count:
+          type: integer
+    StreamAnalyticsUptime:
+      type: object
+      required:
+        - sessionId
+        - title
+        - uptimeMillis
+        - reconnectEvents
+      properties:
+        sessionId:
+          type: string
+        title:
+          type:
+            - string
+            - "null"
+        uptimeMillis:
+          type: integer
+        reconnectEvents:
+          type: integer
+    AnalyticsEventRequest:
+      type: object
+      required:
+        - name
+        - consent
+      properties:
+        name:
+          type: string
+          enum:
+            - app_open
+            - bot_start
+            - bot_stop
+            - tab_selected
+            - command_saved
+            - timer_saved
+            - settings_changed
+            - diagnostic_sent
+        consent:
+          type: boolean
+          const: true
+        occurredAt:
+          type: string
+          format: date-time
+        appVersion:
+          type: string
+          maxLength: 40
+        platform:
+          type: string
+          enum:
+            - android
+        properties:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+                maxLength: 160
+              - type: number
+              - type: boolean
+              - type: "null"
+    BetaFeedbackRequest:
+      type: object
+      required:
+        - category
+        - message
+      properties:
+        category:
+          type: string
+          enum:
+            - bug
+            - idea
+            - confusing
+            - pricing
+            - other
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        occurredAt:
+          type: string
+          format: date-time
+        appVersion:
+          type: string
+          maxLength: 40
+        platform:
+          type: string
+          enum:
+            - android
+        context:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+                maxLength: 160
+              - type: number
+              - type: boolean
+              - type: "null"
+    BetaInterestRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        creatorName:
+          type: string
+          maxLength: 80
+        channelUrl:
+          type: string
+          format: uri
+          maxLength: 300
+          description: Optional YouTube channel or handle URL.
+        message:
+          type: string
+          maxLength: 500
+        source:
+          type: string
+          enum:
+            - launch-site
+          default: launch-site
+    BetaInterestResult:
+      type: object
+      required:
+        - saved
+        - id
+        - receivedAt
+      properties:
+        saved:
+          type: boolean
+        id:
+          type: string
+        receivedAt:
+          type: string
+          format: date-time
+    YouTubeTestMessageRequest:
+      type: object
+      required:
+        - liveChatId
+        - text
+      properties:
+        liveChatId:
+          type: string
+          minLength: 1
+        text:
+          type: string
+          minLength: 1
+          maxLength: 200
+    YouTubeTestMessageResult:
+      type: object
+      required:
+        - messageId
+      properties:
+        messageId:
+          type: string
+    YouTubeLiveChatMessagesRequest:
+      type: object
+      required:
+        - liveChatId
+      properties:
+        liveChatId:
+          type: string
+          minLength: 1
+        pageToken:
+          type: string
+          minLength: 1
+          maxLength: 512
+    YouTubeLiveChatMessagePage:
+      type: object
+      required:
+        - messages
+        - pollingIntervalMillis
+        - source
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/YouTubeLiveChatMessage"
+        nextPageToken:
+          type:
+            - string
+            - "null"
+        pollingIntervalMillis:
+          type: integer
+          minimum: 0
+        source:
+          type: string
+          enum:
+            - mock
+            - youtube-api
+            - backend
+    YouTubeLiveChatMessage:
+      type: object
+      required:
+        - id
+        - authorChannelId
+        - authorName
+        - text
+        - publishedAt
+        - messageType
+      properties:
+        id:
+          type: string
+        authorChannelId:
+          type: string
+        authorName:
+          type: string
+        text:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        messageType:
+          type: string
+          enum:
+            - textMessageEvent
+            - superChatEvent
+            - superStickerEvent
+            - newSponsorEvent
+            - memberMilestoneChatEvent
+            - messageDeletedEvent
+            - userBannedEvent
+            - systemEvent
+        isOwner:
+          type: boolean
+        isModerator:
+          type: boolean
+        isMember:
+          type: boolean
+        isVerified:
+          type: boolean
+        purchaseAmountMicros:
+          type:
+            - string
+            - "null"
+        purchaseCurrency:
+          type:
+            - string
+            - "null"
+        targetMessageId:
+          type:
+            - string
+            - "null"
+        targetChannelId:
+          type:
+            - string
+            - "null"
+    YouTubeMessageSendRequest:
+      type: object
+      required:
+        - liveChatId
+        - text
+      properties:
+        liveChatId:
+          type: string
+          minLength: 1
+        text:
+          type: string
+          minLength: 1
+          maxLength: 200
+    YouTubeMessageSendResult:
+      type: object
+      required:
+        - messageId
+        - liveChatId
+        - sentAt
+      properties:
+        messageId:
+          type: string
+        liveChatId:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+    YouTubeMessageDeleteRequest:
+      type: object
+      required:
+        - messageId
+      properties:
+        messageId:
+          type: string
+          minLength: 1
+          maxLength: 256
+        reason:
+          type: string
+          maxLength: 300
+    YouTubeMessageDeleteResult:
+      type: object
+      required:
+        - messageId
+        - actionType
+        - reason
+        - deletedAt
+      properties:
+        messageId:
+          type: string
+        actionType:
+          type: string
+          enum:
+            - deleteMessage
+        reason:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+    YouTubeUserHideRequest:
+      type: object
+      required:
+        - liveChatId
+        - authorChannelId
+      properties:
+        liveChatId:
+          type: string
+          minLength: 1
+        authorChannelId:
+          type: string
+          minLength: 1
+          maxLength: 256
+        durationSeconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        reason:
+          type: string
+          maxLength: 300
+    YouTubeUserHideResult:
+      type: object
+      required:
+        - liveChatId
+        - authorChannelId
+        - liveChatBanId
+        - actionType
+        - durationSeconds
+        - reason
+        - actedAt
+      properties:
+        liveChatId:
+          type: string
+        authorChannelId:
+          type: string
+        liveChatBanId:
+          type:
+            - string
+            - "null"
+        actionType:
+          type: string
+          enum:
+            - hideUser
+            - timeoutUser
+        durationSeconds:
+          type:
+            - integer
+            - "null"
+        reason:
+          type: string
+        actedAt:
+          type: string
+          format: date-time
+    YouTubeUserUnbanRequest:
+      type: object
+      required:
+        - liveChatBanId
+      properties:
+        liveChatBanId:
+          type: string
+          minLength: 1
+          maxLength: 256
+        reason:
+          type: string
+          maxLength: 300
+    YouTubeUserUnbanResult:
+      type: object
+      required:
+        - liveChatBanId
+        - actionType
+        - reason
+        - actedAt
+      properties:
+        liveChatBanId:
+          type: string
+        actionType:
+          type: string
+          enum:
+            - unbanUser
+        reason:
+          type: string
+        actedAt:
+          type: string
+          format: date-time
+    CommandManualSendRequest:
+      type: object
+      required:
+        - liveChatId
+      properties:
+        liveChatId:
+          type: string
+          minLength: 1
+        streamTitle:
+          type: string
+          maxLength: 160
+        streamStartedAt:
+          type: string
+          format: date-time
+    CommandManualSendResult:
+      type: object
+      required:
+        - commandId
+        - commandName
+        - liveChatId
+        - messageId
+        - sentText
+        - sentAt
+      properties:
+        commandId:
+          type: string
+        commandName:
+          type: string
+        liveChatId:
+          type: string
+        messageId:
+          type: string
+        sentText:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+    UserWarningRequest:
+      type: object
+      required:
+        - profileId
+        - authorChannelId
+        - displayName
+        - reason
+      properties:
+        profileId:
+          type: string
+        authorChannelId:
+          type: string
+          maxLength: 128
+        displayName:
+          type: string
+          maxLength: 120
+        profileImageUrl:
+          type:
+            - string
+            - "null"
+          format: uri
+          maxLength: 500
+        reason:
+          type: string
+          maxLength: 300
+        liveChatId:
+          type: string
+          maxLength: 256
+        warningText:
+          type: string
+          minLength: 1
+          maxLength: 200
+    UserProfileList:
+      type: object
+      required:
+        - users
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProfileSummary"
+    UserProfileNotesRequest:
+      type: object
+      required:
+        - notes
+      properties:
+        notes:
+          type:
+            - string
+            - "null"
+          maxLength: 500
+    UserHideRequest:
+      type: object
+      required:
+        - liveChatId
+      properties:
+        liveChatId:
+          type: string
+          maxLength: 256
+        reason:
+          type: string
+          maxLength: 300
+    UserHideResult:
+      type: object
+      required:
+        - user
+        - action
+        - liveChatId
+        - liveChatBanId
+        - actionType
+        - reason
+        - hiddenAt
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfileSummary"
+        action:
+          $ref: "#/components/schemas/UserModerationActionRecord"
+        liveChatId:
+          type: string
+        liveChatBanId:
+          type:
+            - string
+            - "null"
+        actionType:
+          type: string
+          enum:
+            - hideUser
+        reason:
+          type: string
+        hiddenAt:
+          type: string
+          format: date-time
+    UserTimeoutRequest:
+      type: object
+      required:
+        - liveChatId
+      properties:
+        liveChatId:
+          type: string
+          maxLength: 256
+        durationSeconds:
+          type: integer
+          minimum: 60
+          maximum: 86400
+          default: 300
+        reason:
+          type: string
+          maxLength: 300
+    UserTimeoutResult:
+      type: object
+      required:
+        - user
+        - action
+        - liveChatId
+        - liveChatBanId
+        - durationSeconds
+        - actionType
+        - reason
+        - timedOutAt
+        - timedOutUntil
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfileSummary"
+        action:
+          $ref: "#/components/schemas/UserModerationActionRecord"
+        liveChatId:
+          type: string
+        liveChatBanId:
+          type:
+            - string
+            - "null"
+        durationSeconds:
+          type: integer
+        actionType:
+          type: string
+          enum:
+            - timeoutUser
+        reason:
+          type: string
+        timedOutAt:
+          type: string
+          format: date-time
+        timedOutUntil:
+          type: string
+          format: date-time
+    UserUnbanRequest:
+      type: object
+      required:
+        - liveChatBanId
+      properties:
+        liveChatBanId:
+          type: string
+          minLength: 1
+          maxLength: 256
+        liveChatId:
+          type:
+            - string
+            - "null"
+          maxLength: 256
+        reason:
+          type: string
+          maxLength: 300
+    UserUnbanResult:
+      type: object
+      required:
+        - user
+        - action
+        - liveChatBanId
+        - actionType
+        - reason
+        - unbannedAt
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfileSummary"
+        action:
+          $ref: "#/components/schemas/UserModerationActionRecord"
+        liveChatBanId:
+          type: string
+        actionType:
+          type: string
+          enum:
+            - unbanUser
+        reason:
+          type: string
+        unbannedAt:
+          type: string
+          format: date-time
+    UserWhitelistRecord:
+      type: object
+      required:
+        - id
+        - profileId
+        - authorChannelId
+        - displayName
+        - temporaryUntil
+        - createdAt
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        authorChannelId:
+          type: string
+        displayName:
+          type:
+            - string
+            - "null"
+        temporaryUntil:
+          type:
+            - string
+            - "null"
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    UserWhitelistRequest:
+      type: object
+      properties:
+        durationSeconds:
+          type:
+            - integer
+            - "null"
+          minimum: 60
+          maximum: 604800
+          description: Omit or null for a permanent whitelist entry.
+    UserWhitelistResult:
+      type: object
+      required:
+        - user
+        - whitelist
+        - whitelistedAt
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfileSummary"
+        whitelist:
+          $ref: "#/components/schemas/UserWhitelistRecord"
+        whitelistedAt:
+          type: string
+          format: date-time
+    UserProfileSummary:
+      type: object
+      required:
+        - id
+        - profileId
+        - authorChannelId
+        - displayName
+        - firstSeenAt
+        - lastSeenAt
+        - messageCount
+        - strikeCount
+        - recentStrikes
+        - recentModerationActions
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        authorChannelId:
+          type: string
+        displayName:
+          type: string
+        profileImageUrl:
+          type:
+            - string
+            - "null"
+          format: uri
+        firstSeenAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        messageCount:
+          type: integer
+        notes:
+          type:
+            - string
+            - "null"
+        strikeCount:
+          type: integer
+        recentStrikes:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserStrikeRecord"
+        recentModerationActions:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserModerationActionRecord"
+    UserStrikeRecord:
+      type: object
+      required:
+        - id
+        - userProfileId
+        - reason
+        - createdAt
+      properties:
+        id:
+          type: string
+        userProfileId:
+          type: string
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    UserModerationActionRecord:
+      type: object
+      required:
+        - id
+        - userProfileId
+        - actionType
+        - liveChatId
+        - liveChatBanId
+        - reason
+        - durationSeconds
+        - createdAt
+        - expiresAt
+      properties:
+        id:
+          type: string
+        userProfileId:
+          type: string
+        actionType:
+          type: string
+          enum:
+            - hideUser
+            - timeoutUser
+            - unbanUser
+        liveChatId:
+          type:
+            - string
+            - "null"
+        liveChatBanId:
+          type:
+            - string
+            - "null"
+        reason:
+          type: string
+        durationSeconds:
+          type:
+            - integer
+            - "null"
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+    UserWarningResult:
+      type: object
+      required:
+        - user
+        - strike
+        - messageId
+        - warnedAt
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfileSummary"
+        strike:
+          $ref: "#/components/schemas/UserStrikeRecord"
+        messageId:
+          type:
+            - string
+            - "null"
+        warnedAt:
+          type: string
+          format: date-time
+    ChatMessage:
+      type: object
+      required:
+        - id
+        - authorChannelId
+        - authorName
+        - text
+        - timestamp
+      properties:
+        id:
+          type: string
+        authorChannelId:
+          type: string
+        authorName:
+          type: string
+        text:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        streamStartedAt:
+          type: string
+          format: date-time
+        isOwner:
+          type: boolean
+        isModerator:
+          type: boolean
+        isMember:
+          type: boolean
+        isVerified:
+          type: boolean
+    ModerationProfile:
+      type: object
+      properties:
+        blockedTerms:
+          type: array
+          items:
+            type: string
+        regexPatterns:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 160
+        linkPolicy:
+          type: string
+          enum:
+            - allow
+            - flag
+            - delete
+        allowedDomains:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+            maxLength: 120
+        blockedDomains:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+            maxLength: 120
+        capsThreshold:
+          type: number
+          minimum: 0
+          maximum: 1
+        maxRepeatedCharacters:
+          type: integer
+          minimum: 3
+          maximum: 20
+        maxEmojiCount:
+          type: integer
+          minimum: 0
+          maximum: 100
+        maxMentions:
+          type: integer
+          minimum: 0
+          maximum: 100
+        maxSymbolCount:
+          type: integer
+          minimum: 0
+          maximum: 200
+        trustedChannelIds:
+          type: array
+          maxItems: 500
+          items:
+            type: string
+            maxLength: 128
+        temporaryTrustedChannels:
+          type: array
+          maxItems: 500
+          items:
+            type: object
+            required:
+              - channelId
+              - expiresAt
+            properties:
+              channelId:
+                type: string
+                maxLength: 128
+              expiresAt:
+                type: string
+                format: date-time
+        ignoreMembers:
+          type: boolean
+        raidMode:
+          type: boolean
+        newChatterBurstThreshold:
+          type: integer
+          minimum: 0
+          maximum: 200
+        newChatterBurstWindowSeconds:
+          type: integer
+          minimum: 5
+          maximum: 600
+        firstStreamMinutesOnly:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 1440
+        autoReplyEnabled:
+          type: boolean
+        autoReplyMessage:
+          type: string
+          maxLength: 200
+        hideUserOnSevereMatch:
+          type: boolean
+    RulePresetRecord:
+      type: object
+      required:
+        - id
+        - profileId
+        - name
+        - config
+        - isDefault
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        name:
+          type: string
+        config:
+          $ref: "#/components/schemas/ModerationProfile"
+        isDefault:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RulePresetExportBundle:
+      type: object
+      required:
+        - formatVersion
+        - exportedAt
+        - profileId
+        - rulePresets
+      properties:
+        formatVersion:
+          type: integer
+          enum:
+            - 1
+        exportedAt:
+          type: string
+          format: date-time
+        profileId:
+          type: string
+        rulePresets:
+          type: array
+          maxItems: 25
+          items:
+            $ref: "#/components/schemas/RulePresetRecord"
+    RulePresetImportResult:
+      type: object
+      required:
+        - importedAt
+        - profileId
+        - importedCount
+        - rulePresets
+      properties:
+        importedAt:
+          type: string
+          format: date-time
+        profileId:
+          type: string
+        importedCount:
+          type: integer
+          minimum: 0
+        rulePresets:
+          type: array
+          items:
+            $ref: "#/components/schemas/RulePresetRecord"
+    RulePresetTemplate:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - config
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        config:
+          $ref: "#/components/schemas/ModerationProfile"
+    RulePresetTemplateList:
+      type: object
+      required:
+        - rulePresetTemplates
+      properties:
+        rulePresetTemplates:
+          type: array
+          items:
+            $ref: "#/components/schemas/RulePresetTemplate"
+    EvaluateMessageRequest:
+      type: object
+      required:
+        - message
+        - profile
+      properties:
+        message:
+          $ref: "#/components/schemas/ChatMessage"
+        profile:
+          $ref: "#/components/schemas/ModerationProfile"
+    ModerationSuggestionRequest:
+      type: object
+      required:
+        - message
+        - profile
+      properties:
+        message:
+          $ref: "#/components/schemas/ChatMessage"
+        profile:
+          $ref: "#/components/schemas/ModerationProfile"
+        context:
+          type: object
+          properties:
+            recentMessages:
+              type: array
+              maxItems: 50
+              items:
+                $ref: "#/components/schemas/ChatMessage"
+        options:
+          type: object
+          properties:
+            confidenceThreshold:
+              type: number
+              minimum: 0
+              maximum: 1
+              default: 0.65
+            manualApprovalRequired:
+              type: boolean
+              enum:
+                - true
+              default: true
+    ModerationSuggestionResult:
+      type: object
+      required:
+        - provider
+        - manualApprovalRequired
+        - suggestedAction
+        - classification
+        - confidence
+        - confidenceThreshold
+        - reasons
+        - explanation
+        - usage
+      properties:
+        provider:
+          type: string
+          enum:
+            - local-heuristic
+        manualApprovalRequired:
+          type: boolean
+          enum:
+            - true
+        suggestedAction:
+          type: string
+          enum:
+            - allow
+            - flagForReview
+            - deleteMessage
+            - timeoutUser
+            - hideUser
+        classification:
+          type: array
+          items:
+            type: string
+            enum:
+              - spam
+              - toxicity
+              - repeated_question
+              - policy
+              - safe
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        confidenceThreshold:
+          type: number
+          minimum: 0
+          maximum: 1
+        reasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModerationSuggestionReason"
+        explanation:
+          type: string
+        usage:
+          $ref: "#/components/schemas/ModerationSuggestionUsage"
+    ModerationSuggestionUsage:
+      type: object
+      required:
+        - used
+        - limit
+        - remaining
+        - resetAt
+      properties:
+        used:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 0
+        remaining:
+          type: integer
+          minimum: 0
+        resetAt:
+          type: string
+          format: date-time
+    ModerationSuggestionReason:
+      type: object
+      required:
+        - code
+        - label
+        - detail
+        - confidence
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        detail:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+    ModerationDecision:
+      type: object
+      required:
+        - matched
+        - actions
+      properties:
+        matched:
+          type: boolean
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModerationAction"
+    ModerationAction:
+      type: object
+      required:
+        - type
+        - reason
+        - confidence
+      properties:
+        type:
+          type: string
+          enum:
+            - allow
+            - flagForReview
+            - deleteMessage
+            - timeoutUser
+            - hideUser
+            - sendAutoReply
+        reason:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        text:
+          type:
+            - string
+            - "null"
+          maxLength: 200

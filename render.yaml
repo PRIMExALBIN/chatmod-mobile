@@ -1,0 +1,50 @@
+# Free-tier backend beta deploy.
+# Use an external Neon Postgres DATABASE_URL; Render Free Postgres expires after 30 days.
+services:
+  - type: web
+    name: chatmod-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    region: oregon
+    autoDeploy: true
+    healthCheckPath: /health/ready
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 4100
+      - key: JWT_ISSUER
+        value: chatmod-mobile
+      - key: JWT_AUDIENCE
+        value: chatmod-mobile
+      - key: ANDROID_MIN_SUPPORTED_VERSION_CODE
+        value: 1
+      - key: ANDROID_MIN_SUPPORTED_VERSION_NAME
+        value: 0.1.0
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SECRET_ENCRYPTION_KEYS
+        sync: false
+      - key: GOOGLE_OAUTH_CLIENT_ID
+        sync: false
+      - key: GOOGLE_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_OAUTH_REDIRECT_URI
+        sync: false
+      - key: GOOGLE_PLAY_PACKAGE_NAME
+        sync: false
+      - key: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false

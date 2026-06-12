@@ -1,0 +1,6 @@
+# Cloudflare Pages redirects
+# Uncomment and set your Render backend URL when deployed:
+# /api/*  https://your-app.onrender.com/:splat  200
+
+# Redirect root to index.html (Cloudflare Pages default, explicit for clarity)
+/  /index.html  200

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="chatmod_splash_background">#F6F8FC</color>
+    <color name="chatmod_icon_background">#EAF2FF</color>
+    <color name="chatmod_primary">#1F63CC</color>
+    <color name="chatmod_live">#00A878</color>
+</resources>

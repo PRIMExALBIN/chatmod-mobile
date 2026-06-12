@@ -1,0 +1,421 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum AuditAction {
+  DEVICE_SESSION_CREATED
+  YOUTUBE_CONNECTED
+  PROFILE_BACKED_UP
+  BOT_STARTED
+  BOT_STOPPED
+  MODERATION_ACTION
+  ENTITLEMENT_CHANGED
+}
+
+model User {
+  id             String          @id @default(cuid())
+  displayName    String?
+  email          String?         @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  devices        Device[]
+  linkedAccounts LinkedAccount[]
+  profiles       ChannelProfile[]
+  subscription   Subscription?
+  auditLogs      AuditLog[]
+  settings       Setting[]
+  usageCounters  UsageCounter[]
+}
+
+model Device {
+  id             String   @id @default(cuid())
+  userId         String
+  deviceId       String   @unique
+  installId      String
+  appVersion     String?
+  lastSeenAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LinkedAccount {
+  id                  String   @id @default(cuid())
+  userId              String
+  provider            String
+  providerAccountId   String
+  channelId           String?
+  channelTitle        String?
+  encryptedAccess     String?
+  encryptedRefresh    String?
+  tokenExpiresAt      DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model ChannelProfile {
+  id           String   @id @default(cuid())
+  userId       String
+  channelId    String
+  name         String
+  configJson   Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  backups      Backup[]
+  commands     Command[]
+  timers       Timer[]
+  faqEntries   FaqEntry[]
+  overlayConfig OverlayConfig?
+  rulePresets  RulePreset[]
+  sessions     StreamSession[]
+  teamMembers  TeamMember[]
+  userProfiles UserProfile[]
+  whitelist    WhitelistEntry[]
+  discordWebhook DiscordWebhookConfig?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DiscordWebhookConfig {
+  id                       String         @id @default(cuid())
+  profileId                String         @unique
+  encryptedWebhookUrl      String?
+  enabled                  Boolean        @default(false)
+  alertModerationActions   Boolean        @default(true)
+  alertRuntimeStatus       Boolean        @default(false)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  profile                  ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model RulePreset {
+  id          String         @id @default(cuid())
+  profileId   String
+  name        String
+  configJson  Json
+  isDefault   Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  profile     ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+}
+
+model Command {
+  id              String         @id @default(cuid())
+  profileId       String
+  name            String
+  response        String
+  aliasesJson     Json?
+  cooldownSeconds Int            @default(30)
+  accessLevel     String         @default("everyone")
+  enabled         Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  profile         ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+}
+
+model Timer {
+  id                  String         @id @default(cuid())
+  profileId           String
+  name                String
+  message             String
+  intervalMinutes     Int
+  minChatMessages     Int            @default(0)
+  quietStartMinutes   Int?
+  quietEndMinutes     Int?
+  enabled             Boolean        @default(true)
+  lastSentAt          DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  profile             ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+}
+
+model FaqEntry {
+  id           String         @id @default(cuid())
+  profileId    String
+  question     String
+  answer       String
+  keywordsJson Json?
+  enabled      Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  profile      ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, enabled])
+}
+
+model OverlayConfig {
+  id                    String         @id @default(cuid())
+  profileId             String         @unique
+  ownerDeviceId         String
+  ownerInstallId        String
+  publicTokenHash       String         @unique
+  tokenPreview          String
+  enabled               Boolean        @default(false)
+  theme                 String         @default("control_room")
+  activeSessionId       String?
+  showModerationActions Boolean        @default(true)
+  showRuntimeStatus     Boolean        @default(true)
+  showViewerStats       Boolean        @default(true)
+  showRecentChat        Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  profile               ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([ownerDeviceId])
+  @@index([updatedAt])
+}
+
+model TeamMember {
+  id              String         @id @default(cuid())
+  profileId       String
+  ownerDeviceId   String
+  ownerInstallId  String
+  memberDeviceId  String?
+  memberInstallId String?
+  displayName     String
+  role            String         @default("moderator")
+  status          String         @default("invited")
+  inviteCodeHash  String         @unique
+  inviteCodePreview String
+  permissionsJson Json
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  profile         ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, status])
+  @@index([memberDeviceId, status])
+  @@index([ownerDeviceId])
+}
+
+model StreamSession {
+  id             String                @id @default(cuid())
+  profileId      String
+  videoId        String
+  liveChatId     String
+  title          String?
+  startedAt      DateTime              @default(now())
+  endedAt        DateTime?
+  profile        ChannelProfile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  messages       ChatMessageLog[]
+  actions        ModerationActionLog[]
+  runtimeEvents  BotRuntimeEvent[]
+  apiErrors      ApiError[]
+
+  @@index([endedAt])
+}
+
+model ChatMessageLog {
+  id                  String        @id @default(cuid())
+  sessionId           String
+  youtubeMessageId    String
+  authorChannelId     String
+  authorName          String
+  text                String
+  receivedAt          DateTime
+  createdAt           DateTime      @default(now())
+  session             StreamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, youtubeMessageId])
+  @@index([sessionId, createdAt])
+}
+
+model ModerationActionLog {
+  id                 String        @id @default(cuid())
+  sessionId          String
+  youtubeMessageId   String?
+  authorChannelId    String?
+  actionType         String
+  reason             String
+  confidence         Float?
+  metadata           Json?
+  reviewStatus       String?
+  reviewedAt         DateTime?
+  reviewNote         String?
+  createdAt          DateTime      @default(now())
+  session            StreamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model UserProfile {
+  id                  String         @id @default(cuid())
+  profileId           String
+  authorChannelId     String
+  displayName         String
+  profileImageUrl     String?
+  firstSeenAt         DateTime       @default(now())
+  lastSeenAt          DateTime       @default(now())
+  messageCount        Int            @default(0)
+  notes               String?
+  profile             ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  strikes             Strike[]
+  moderationActions   UserModerationAction[]
+
+  @@unique([profileId, authorChannelId])
+}
+
+model Strike {
+  id             String      @id @default(cuid())
+  userProfileId  String
+  reason         String
+  createdAt      DateTime    @default(now())
+  userProfile    UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+}
+
+model UserModerationAction {
+  id              String      @id @default(cuid())
+  userProfileId   String
+  actionType      String
+  liveChatId      String?
+  liveChatBanId   String?
+  reason          String
+  durationSeconds Int?
+  createdAt       DateTime    @default(now())
+  expiresAt       DateTime?
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@index([userProfileId, createdAt])
+}
+
+model WhitelistEntry {
+  id                  String         @id @default(cuid())
+  profileId           String
+  authorChannelId     String
+  displayName         String?
+  temporaryUntil      DateTime?
+  createdAt           DateTime       @default(now())
+  profile             ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, authorChannelId])
+}
+
+model BotRuntimeEvent {
+  id          String        @id @default(cuid())
+  sessionId   String
+  type        String
+  message     String
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  session     StreamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model ApiError {
+  id          String        @id @default(cuid())
+  sessionId   String?
+  provider    String
+  code        String?
+  message     String
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  session     StreamSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  userId      String
+  key         String
+  valueJson   Json
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  userId                String             @unique
+  source                String
+  status                SubscriptionStatus
+  productId             String?
+  currentPeriodEndsAt   DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entitlements          Entitlement[]
+}
+
+model Entitlement {
+  id              String       @id @default(cuid())
+  subscriptionId  String
+  key             String
+  enabled         Boolean      @default(true)
+  expiresAt       DateTime?
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, key])
+}
+
+model Backup {
+  id          String         @id @default(cuid())
+  profileId   String
+  version     Int
+  channelId   String
+  profileName String
+  clientVersion String?
+  configJson  Json
+  createdAt   DateTime       @default(now())
+  profile     ChannelProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, version])
+  @@index([profileId, createdAt])
+}
+
+model SupportEvent {
+  id          String   @id @default(cuid())
+  deviceId    String?
+  severity    String
+  message     String
+  detailsJson Json?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  action      AuditAction
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model UsageCounter {
+  id          String   @id @default(cuid())
+  userId      String
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key, windowStart])
+  @@index([key, windowStart])
+}

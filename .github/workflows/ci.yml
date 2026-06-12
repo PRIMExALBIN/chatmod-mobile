@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm run backend:test
+
+      - name: Build
+        run: npm run backend:build
+
+      - name: Smoke built backend
+        shell: bash
+        run: |
+          PORT=4115 HOST=127.0.0.1 NODE_ENV=development node backend/dist/main.js &
+          BACKEND_PID=$!
+          trap 'kill "$BACKEND_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1:4115/health >/dev/null; then
+              npm run backend:smoke -- --base-url=http://127.0.0.1:4115 --allow-missing-database
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Backend did not become ready for smoke testing."
+          exit 1
+
+      - name: Validate Prisma
+        run: npm run backend:db:validate
+
+      - name: Production readiness source check
+        run: npm run production:check
+
+      - name: Promo video source check
+        run: npm run promo-video:check
+
+      - name: Release evidence source check
+        run: npm run release:evidence:check
+
+      - name: Android wrapper source check
+        run: npm run android:wrapper:check
+
+      - name: Android local data source check
+        run: npm run android:data:check
+
+      - name: Android dependency injection source check
+        run: npm run android:di:check
+
+      - name: Android UX source check
+        run: npm run android:ux:check
+
+      - name: Android device QA plan check
+        run: npm run android:device:qa -- --print-plan
+
+      - name: Android release signing source check
+        run: npm run android:release:check
+
+      - name: Launch site check
+        run: npm run launch-site:check
+
+      - name: Store readiness check
+        run: npm run store:check
+
+      - name: Audit
+        run: npm audit --audit-level=moderate
+
+      - name: Build backend Docker image
+        run: docker build -f backend/Dockerfile -t chatmod-backend:ci .
+
+      - name: Smoke backend Docker image
+        shell: bash
+        run: |
+          CONTAINER_ID=$(docker run --rm -d -p 4116:4100 -e NODE_ENV=development -e HOST=0.0.0.0 -e PORT=4100 chatmod-backend:ci)
+          trap 'docker stop "$CONTAINER_ID" >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1:4116/health >/dev/null; then
+              npm run backend:smoke -- --base-url=http://127.0.0.1:4116 --allow-missing-database
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Backend Docker image did not become ready for smoke testing."
+          docker logs "$CONTAINER_ID"
+          exit 1
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Android unit tests and closed beta debug build
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew testInternalDebugUnitTest assembleClosedBetaDebug -PchatmodUseDemoApi=true --no-daemon

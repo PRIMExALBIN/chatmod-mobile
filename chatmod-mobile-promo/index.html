@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>ChatMod Mobile Product Promo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f6f8fc;
+        color: #172033;
+        font-family: system-ui, sans-serif;
+      }
+
+      body {
+        position: relative;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f6f8fc;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f6f8fc;
+      }
+
+      #scene1 {
+        z-index: 1;
+      }
+
+      #scene2,
+      #scene3,
+      #scene4,
+      #scene5 {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .scene-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        padding: 118px 150px;
+        display: flex;
+        gap: 64px;
+      }
+
+      .grid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background-image:
+          linear-gradient(rgba(31, 99, 204, 0.06) 1px, rgba(31, 99, 204, 0) 1px),
+          linear-gradient(90deg, rgba(31, 99, 204, 0.06) 1px, rgba(31, 99, 204, 0) 1px);
+        background-size: 72px 72px;
+      }
+
+      .signal-band {
+        position: absolute;
+        z-index: 1;
+        width: 900px;
+        height: 120px;
+        border: 2px solid rgba(31, 99, 204, 0.16);
+        border-left: 0;
+        border-right: 0;
+        transform: rotate(-18deg);
+        opacity: 0.8;
+      }
+
+      .band-a {
+        top: 118px;
+        right: -160px;
+      }
+
+      .band-b {
+        bottom: 118px;
+        left: -210px;
+        border-color: rgba(0, 168, 120, 0.18);
+        transform: rotate(14deg);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        width: fit-content;
+        padding: 10px 14px;
+        border: 1px solid #cbd8ea;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #16479e;
+        font-size: 22px;
+        font-weight: 750;
+      }
+
+      .eyebrow-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: #00a878;
+        box-shadow: 0 0 0 8px rgba(0, 168, 120, 0.15);
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 810px;
+        font-size: 112px;
+        line-height: 0.98;
+        letter-spacing: 0;
+        font-weight: 900;
+      }
+
+      h2 {
+        max-width: 720px;
+        font-size: 78px;
+        line-height: 1.02;
+        letter-spacing: 0;
+        font-weight: 900;
+      }
+
+      .lead {
+        max-width: 720px;
+        font-size: 34px;
+        line-height: 1.22;
+        color: #3a485c;
+        font-weight: 560;
+      }
+
+      .left-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 30px;
+        flex: 0 0 760px;
+      }
+
+      .right-stage {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mark-card {
+        width: 164px;
+        height: 164px;
+        border-radius: 28px;
+        background: #ffffff;
+        box-shadow: 0 32px 80px rgba(22, 71, 158, 0.18);
+        display: grid;
+        place-items: center;
+      }
+
+      .mark-card img {
+        width: 116px;
+        height: 116px;
+      }
+
+      .message-stack {
+        position: relative;
+        width: 660px;
+        min-height: 520px;
+      }
+
+      .chat-row {
+        position: absolute;
+        left: 0;
+        width: 520px;
+        min-height: 92px;
+        border: 1px solid #d5dfef;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 18px 42px rgba(23, 32, 51, 0.09);
+        padding: 18px 20px;
+        display: grid;
+        grid-template-columns: 54px 1fr auto;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .chat-row:nth-child(1) {
+        top: 26px;
+      }
+
+      .chat-row:nth-child(2) {
+        top: 142px;
+        left: 74px;
+      }
+
+      .chat-row:nth-child(3) {
+        top: 258px;
+        left: 22px;
+      }
+
+      .chat-row:nth-child(4) {
+        top: 374px;
+        left: 112px;
+      }
+
+      .avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 8px;
+        background: #e7eef8;
+        color: #16479e;
+        display: grid;
+        place-items: center;
+        font-weight: 850;
+        font-size: 22px;
+      }
+
+      .chat-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .chat-name {
+        color: #617086;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .chat-text {
+        color: #172033;
+        font-size: 24px;
+        font-weight: 760;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .severity {
+        min-width: 78px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 850;
+      }
+
+      .severity.warn {
+        background: #fff3d7;
+        color: #5f3c00;
+        border: 1px solid #e5b45d;
+      }
+
+      .severity.danger {
+        background: #fee5e1;
+        color: #8d1e13;
+        border: 1px solid #efb0a7;
+      }
+
+      .severity.info {
+        background: #dbeafe;
+        color: #16479e;
+        border: 1px solid #b9cff0;
+      }
+
+      .pressure-meter {
+        position: absolute;
+        right: 8px;
+        bottom: 42px;
+        width: 210px;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #172033;
+        border: 1px solid #d5dfef;
+        padding: 20px;
+        box-shadow: 0 24px 60px rgba(23, 32, 51, 0.12);
+      }
+
+      .meter-label {
+        color: #617086;
+        font-size: 17px;
+        font-weight: 720;
+      }
+
+      .meter-number {
+        margin-top: 8px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 48px;
+        line-height: 1;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: #172033;
+      }
+
+      .phone {
+        position: relative;
+        width: 440px;
+        height: 892px;
+        border-radius: 42px;
+        background: #172033;
+        padding: 16px;
+        box-shadow:
+          0 42px 96px rgba(22, 71, 158, 0.22),
+          inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+      }
+
+      .phone::before {
+        content: "";
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        width: 142px;
+        height: 28px;
+        transform: translateX(-50%);
+        border-radius: 0 0 18px 18px;
+        background: #172033;
+        z-index: 3;
+      }
+
+      .phone-screen {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 32px;
+        overflow: hidden;
+        background: #f6f8fc;
+      }
+
+      .statusbar {
+        height: 36px;
+        padding: 9px 20px 0;
+        display: flex;
+        justify-content: space-between;
+        color: #172033;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .appbar {
+        padding: 18px 22px 14px;
+        display: grid;
+        grid-template-columns: 1fr 40px;
+        gap: 10px;
+        align-items: center;
+        background: #ffffff;
+        border-bottom: 1px solid #dce5f2;
+      }
+
+      .app-title {
+        font-size: 25px;
+        font-weight: 880;
+      }
+
+      .channel {
+        margin-top: 4px;
+        color: #617086;
+        font-size: 15px;
+        font-weight: 680;
+      }
+
+      .power {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #e7eef8;
+        display: grid;
+        place-items: center;
+        color: #1f63cc;
+        font-size: 26px;
+        font-weight: 900;
+      }
+
+      .screen-body {
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .status-card {
+        border-radius: 8px;
+        background: #dbeafe;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border: 1px solid #c6d7ef;
+      }
+
+      .status-row {
+        display: grid;
+        grid-template-columns: 16px 1fr 78px;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .live-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: #00a878;
+        box-shadow: 0 0 0 7px rgba(0, 168, 120, 0.16);
+      }
+
+      .status-title {
+        font-size: 24px;
+        font-weight: 860;
+      }
+
+      .status-detail {
+        margin-top: 3px;
+        color: #617086;
+        font-size: 15px;
+        font-weight: 650;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .start-button {
+        height: 40px;
+        border-radius: 8px;
+        background: #1f63cc;
+        color: #ffffff;
+        display: grid;
+        place-items: center;
+        font-weight: 850;
+        font-size: 15px;
+      }
+
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        min-height: 32px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: #ffffff;
+        border: 1px solid #cbd8ea;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 760;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: #ffffff;
+        border: 1px solid #d5dfef;
+        color: #617086;
+        font-size: 13px;
+        font-weight: 760;
+      }
+
+      .tab.active {
+        background: #1f63cc;
+        border-color: #1f63cc;
+        color: #ffffff;
+      }
+
+      .mini-row,
+      .queue-mini-row,
+      .log-row,
+      .command-tile,
+      .timer-tile,
+      .sync-card {
+        border: 1px solid #d5dfef;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .queue-mini-row {
+        padding: 13px;
+        display: grid;
+        grid-template-columns: 10px 1fr 34px;
+        gap: 11px;
+        align-items: start;
+      }
+
+      .row-accent {
+        width: 10px;
+        height: 42px;
+        border-radius: 8px;
+        background: #c78314;
+      }
+
+      .row-accent.danger {
+        background: #c22e1e;
+      }
+
+      .row-accent.info {
+        background: #1f63cc;
+      }
+
+      .mini-author {
+        font-size: 15px;
+        color: #172033;
+        font-weight: 850;
+      }
+
+      .mini-message {
+        margin-top: 4px;
+        font-size: 13px;
+        line-height: 1.22;
+        color: #617086;
+        font-weight: 640;
+      }
+
+      .delete-action {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #fee5e1;
+        color: #c22e1e;
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+        font-weight: 900;
+      }
+
+      .callouts {
+        position: absolute;
+        left: 60px;
+        top: 158px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .callout {
+        width: 316px;
+        border: 1px solid #cbd8ea;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 18px;
+        box-shadow: 0 18px 44px rgba(23, 32, 51, 0.08);
+      }
+
+      .callout-label {
+        color: #617086;
+        font-size: 16px;
+        font-weight: 760;
+      }
+
+      .callout-value {
+        margin-top: 6px;
+        color: #172033;
+        font-size: 25px;
+        font-weight: 900;
+      }
+
+      .scene2-copy,
+      .scene3-copy,
+      .scene4-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 28px;
+      }
+
+      .scene2-copy {
+        flex: 0 0 610px;
+      }
+
+      .scene3-copy {
+        flex: 0 0 600px;
+      }
+
+      .scene4-copy {
+        flex: 0 0 560px;
+      }
+
+      .rules-board {
+        width: 570px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .rule-card {
+        border: 1px solid #d5dfef;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 18px 20px;
+        display: grid;
+        grid-template-columns: 40px 1fr auto;
+        gap: 14px;
+        align-items: center;
+        box-shadow: 0 12px 26px rgba(23, 32, 51, 0.06);
+      }
+
+      .rule-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: #e2f8f0;
+        color: #007d5b;
+        font-weight: 900;
+        font-size: 14px;
+      }
+
+      .rule-title {
+        font-size: 22px;
+        font-weight: 850;
+      }
+
+      .rule-detail {
+        margin-top: 4px;
+        color: #617086;
+        font-size: 16px;
+        font-weight: 640;
+      }
+
+      .rule-state {
+        font-family: "IBM Plex Mono", monospace;
+        color: #007d5b;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .action-log {
+        position: absolute;
+        right: 86px;
+        bottom: 114px;
+        width: 410px;
+        border: 1px solid #cbd8ea;
+        border-radius: 8px;
+        background: #172033;
+        color: #ffffff;
+        padding: 20px;
+        box-shadow: 0 26px 70px rgba(23, 32, 51, 0.18);
+      }
+
+      .action-log .log-kicker {
+        color: #8ee8c8;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .action-log .log-main {
+        margin-top: 8px;
+        font-size: 25px;
+        font-weight: 850;
+      }
+
+      .automation-stage {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 18px;
+        align-content: center;
+      }
+
+      .automation-panel {
+        min-height: 250px;
+        border: 1px solid #cbd8ea;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 22px;
+        box-shadow: 0 18px 44px rgba(23, 32, 51, 0.08);
+      }
+
+      .panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .panel-title {
+        font-size: 25px;
+        font-weight: 890;
+      }
+
+      .panel-pill {
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: #e2f8f0;
+        color: #007d5b;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .command-tile,
+      .timer-tile,
+      .log-row,
+      .sync-card {
+        margin-top: 12px;
+        padding: 14px;
+      }
+
+      .tile-top {
+        display: flex;
+        justify-content: space-between;
+        color: #172033;
+        font-size: 18px;
+        font-weight: 850;
+      }
+
+      .tile-copy {
+        margin-top: 7px;
+        color: #617086;
+        font-size: 15px;
+        line-height: 1.25;
+        font-weight: 620;
+      }
+
+      .sync-card {
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .sync-node {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: #dbeafe;
+        display: grid;
+        place-items: center;
+        color: #1f63cc;
+        font-weight: 900;
+      }
+
+      .sync-title {
+        font-size: 18px;
+        font-weight: 850;
+      }
+
+      .sync-detail {
+        margin-top: 4px;
+        color: #617086;
+        font-size: 14px;
+        font-weight: 620;
+      }
+
+      .closing-content {
+        width: 100%;
+        height: 100%;
+        padding: 110px 150px;
+        display: grid;
+        grid-template-columns: 1fr 600px;
+        gap: 70px;
+        align-items: center;
+      }
+
+      .closing-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      .closing-title {
+        font-size: 132px;
+        line-height: 0.94;
+        font-weight: 920;
+        letter-spacing: 0;
+        max-width: 920px;
+      }
+
+      .closing-promise {
+        max-width: 760px;
+        font-size: 42px;
+        line-height: 1.16;
+        color: #334155;
+        font-weight: 680;
+      }
+
+      .closing-mark {
+        width: 220px;
+        height: 220px;
+        border-radius: 34px;
+        background: #ffffff;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 34px 82px rgba(22, 71, 158, 0.2);
+      }
+
+      .closing-mark img {
+        width: 160px;
+        height: 160px;
+      }
+
+      .phone-ghost {
+        position: relative;
+        width: 486px;
+        height: 910px;
+        border-radius: 46px;
+        border: 18px solid #172033;
+        background: #ffffff;
+        box-shadow: 0 36px 90px rgba(23, 32, 51, 0.14);
+        overflow: hidden;
+      }
+
+      .ghost-top {
+        height: 190px;
+        background: #dbeafe;
+        border-bottom: 1px solid #cbd8ea;
+        padding: 56px 34px;
+      }
+
+      .ghost-line {
+        height: 18px;
+        border-radius: 8px;
+        background: #1f63cc;
+        margin-bottom: 16px;
+      }
+
+      .ghost-line.short {
+        width: 58%;
+        background: #00a878;
+      }
+
+      .ghost-rows {
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .ghost-row {
+        height: 74px;
+        border-radius: 8px;
+        background: #f6f8fc;
+        border: 1px solid #d5dfef;
+      }
+
+      .transition-panel,
+      .transition-panel-accent {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        transform: translateX(-110%);
+        pointer-events: none;
+      }
+
+      .transition-panel {
+        background: #1f63cc;
+      }
+
+      .transition-panel-accent {
+        background: #00a878;
+        width: 18%;
+      }
+
+      .flash {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        background: #ffffff;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-width="1920"
+      data-height="1080"
+      data-start="0"
+      data-duration="20"
+    >
+      <div id="scene1" class="scene">
+        <div class="grid" data-layout-ignore></div>
+        <div class="signal-band band-a" data-layout-ignore></div>
+        <div class="signal-band band-b" data-layout-ignore></div>
+        <div class="scene-content">
+          <section class="left-copy">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              YouTube Live ops from your phone
+            </div>
+            <h1>No desktop babysitter.</h1>
+            <p class="lead">
+              A custom moderation bot that stays close to the stream, the chat, and the creator running the show.
+            </p>
+          </section>
+          <section class="right-stage">
+            <div class="message-stack">
+              <div class="chat-row">
+                <div class="avatar">AK</div>
+                <div class="chat-copy">
+                  <div class="chat-name">@alpha_key</div>
+                  <div class="chat-text">same link again https://...</div>
+                </div>
+                <div class="severity danger">block</div>
+              </div>
+              <div class="chat-row">
+                <div class="avatar">MJ</div>
+                <div class="chat-copy">
+                  <div class="chat-name">@mod_jay</div>
+                  <div class="chat-text">new sponsor command?</div>
+                </div>
+                <div class="severity info">reply</div>
+              </div>
+              <div class="chat-row">
+                <div class="avatar">TV</div>
+                <div class="chat-copy">
+                  <div class="chat-name">@turboview</div>
+                  <div class="chat-text">CAPS CAPS CAPS CAPS</div>
+                </div>
+                <div class="severity warn">review</div>
+              </div>
+              <div class="chat-row">
+                <div class="avatar">NL</div>
+                <div class="chat-copy">
+                  <div class="chat-name">@nightloop</div>
+                  <div class="chat-text">!rules</div>
+                </div>
+                <div class="severity info">timer</div>
+              </div>
+              <div class="pressure-meter">
+                <div class="meter-label">live chat pressure</div>
+                <div class="meter-number">148/m</div>
+              </div>
+            </div>
+            <div class="mark-card">
+              <img src="assets/chatmod-mark.svg" alt="ChatMod mark" />
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="scene2" class="scene">
+        <div class="grid" data-layout-ignore></div>
+        <div class="signal-band band-a" data-layout-ignore></div>
+        <div class="signal-band band-b" data-layout-ignore></div>
+        <div class="scene-content">
+          <section class="scene2-copy">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              Foreground bot service
+            </div>
+            <h2>Run live moderation from the phone in your hand.</h2>
+            <p class="lead">
+              Start the bot, confirm the stream, and keep the YouTube chat connection visible without leaving the creator workflow.
+            </p>
+          </section>
+          <section class="right-stage">
+            <div class="callouts">
+              <div class="callout">
+                <div class="callout-label">Runtime</div>
+                <div class="callout-value">Bot running</div>
+              </div>
+              <div class="callout">
+                <div class="callout-label">Stream</div>
+                <div class="callout-value">Sunday live</div>
+              </div>
+              <div class="callout">
+                <div class="callout-label">Sync</div>
+                <div class="callout-value">Ready</div>
+              </div>
+            </div>
+            <div class="phone hero-phone">
+              <div class="phone-screen">
+                <div class="statusbar">
+                  <span>20:42</span>
+                  <span>5G  91%</span>
+                </div>
+                <div class="appbar">
+                  <div>
+                    <div class="app-title">ChatMod Mobile</div>
+                    <div class="channel">@NorthstarLive</div>
+                  </div>
+                  <div class="power">I</div>
+                </div>
+                <div class="screen-body">
+                  <div class="status-card">
+                    <div class="status-row">
+                      <div class="live-dot"></div>
+                      <div>
+                        <div class="status-title">Bot running</div>
+                        <div class="status-detail">Sunday setup stream</div>
+                      </div>
+                      <div class="start-button">Stop</div>
+                    </div>
+                    <div class="chips">
+                      <div class="chip">chat: live_7B2</div>
+                      <div class="chip">sync: Ready</div>
+                    </div>
+                  </div>
+                  <div class="tabs">
+                    <div class="tab active">Queue</div>
+                    <div class="tab">Rules</div>
+                    <div class="tab">Commands</div>
+                    <div class="tab">Timers</div>
+                    <div class="tab">Logs</div>
+                  </div>
+                  <div class="queue-mini-row">
+                    <div class="row-accent danger"></div>
+                    <div>
+                      <div class="mini-author">@linkstorm</div>
+                      <div class="mini-message">Blocked domain detected in message</div>
+                    </div>
+                    <div class="delete-action">x</div>
+                  </div>
+                  <div class="queue-mini-row">
+                    <div class="row-accent info"></div>
+                    <div>
+                      <div class="mini-author">@pixelmod</div>
+                      <div class="mini-message">Member bypass applied</div>
+                    </div>
+                    <div class="delete-action">ok</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="scene3" class="scene">
+        <div class="grid" data-layout-ignore></div>
+        <div class="signal-band band-a" data-layout-ignore></div>
+        <div class="signal-band band-b" data-layout-ignore></div>
+        <div class="scene-content">
+          <section class="scene3-copy">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              Rule engine on-device
+            </div>
+            <h2>Watch the queue. Enforce the filters.</h2>
+            <p class="lead">
+              Block links, catch spam, preserve trusted chatter, and log every action with a reason the creator can understand.
+            </p>
+          </section>
+          <section class="right-stage">
+            <div class="rules-board">
+              <div class="rule-card">
+                <div class="rule-icon">ok</div>
+                <div>
+                  <div class="rule-title">Blocked terms</div>
+                  <div class="rule-detail">word lists and regex patterns</div>
+                </div>
+                <div class="rule-state">ON</div>
+              </div>
+              <div class="rule-card">
+                <div class="rule-icon">ok</div>
+                <div>
+                  <div class="rule-title">Link lockdown</div>
+                  <div class="rule-detail">allow and block domains</div>
+                </div>
+                <div class="rule-state">ON</div>
+              </div>
+              <div class="rule-card">
+                <div class="rule-icon">ok</div>
+                <div>
+                  <div class="rule-title">Caps and repeats</div>
+                  <div class="rule-detail">density thresholds for noise</div>
+                </div>
+                <div class="rule-state">ON</div>
+              </div>
+              <div class="rule-card">
+                <div class="rule-icon">ok</div>
+                <div>
+                  <div class="rule-title">Trusted bypass</div>
+                  <div class="rule-detail">owner, mods, members</div>
+                </div>
+                <div class="rule-state">ON</div>
+              </div>
+            </div>
+            <div class="action-log">
+              <div class="log-kicker">moderation action</div>
+              <div class="log-main">Deleted spam link, queued cloud sync, kept the stream moving.</div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="scene4" class="scene">
+        <div class="grid" data-layout-ignore></div>
+        <div class="signal-band band-a" data-layout-ignore></div>
+        <div class="signal-band band-b" data-layout-ignore></div>
+        <div class="scene-content">
+          <section class="scene4-copy">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              Creator automation
+            </div>
+            <h2>Commands, timers, logs, backups, and support.</h2>
+            <p class="lead">
+              Local-first controls stay usable mid-stream. Backend sync keeps profiles, audits, and diagnostics recoverable.
+            </p>
+          </section>
+          <section class="automation-stage">
+            <div class="automation-panel">
+              <div class="panel-heading">
+                <div class="panel-title">Commands</div>
+                <div class="panel-pill">3 profiles</div>
+              </div>
+              <div class="command-tile">
+                <div class="tile-top">
+                  <span>!rules</span>
+                  <span>30s</span>
+                </div>
+                <div class="tile-copy">Replies with chat rules using owner/mod/member access control.</div>
+              </div>
+              <div class="command-tile">
+                <div class="tile-top">
+                  <span>!sponsor</span>
+                  <span>ON</span>
+                </div>
+                <div class="tile-copy">Cooldowns prevent duplicate bot messages.</div>
+              </div>
+            </div>
+            <div class="automation-panel">
+              <div class="panel-heading">
+                <div class="panel-title">Timers</div>
+                <div class="panel-pill">activity aware</div>
+              </div>
+              <div class="timer-tile">
+                <div class="tile-top">
+                  <span>Welcome loop</span>
+                  <span>15m</span>
+                </div>
+                <div class="tile-copy">Only fires when chat activity is high enough.</div>
+              </div>
+              <div class="timer-tile">
+                <div class="tile-top">
+                  <span>Discord plug</span>
+                  <span>45m</span>
+                </div>
+                <div class="tile-copy">Trimmed, safe, and rate-limited before sending.</div>
+              </div>
+            </div>
+            <div class="automation-panel">
+              <div class="panel-heading">
+                <div class="panel-title">Logs</div>
+                <div class="panel-pill">Room + cloud</div>
+              </div>
+              <div class="log-row">
+                <div class="tile-top">
+                  <span>Runtime heartbeat</span>
+                  <span class="mono">20:42</span>
+                </div>
+                <div class="tile-copy">Processed messages, duplicate skips, reconnects, and stop reasons.</div>
+              </div>
+              <div class="log-row">
+                <div class="tile-top">
+                  <span>Audit trail</span>
+                  <span class="mono">sync</span>
+                </div>
+                <div class="tile-copy">Destructive actions include reason and source.</div>
+              </div>
+            </div>
+            <div class="automation-panel">
+              <div class="panel-heading">
+                <div class="panel-title">Account</div>
+                <div class="panel-pill">honest status</div>
+              </div>
+              <div class="sync-card">
+                <div class="sync-node">B</div>
+                <div>
+                  <div class="sync-title">Cloud backups</div>
+                  <div class="sync-detail">Profiles, commands, timers, settings.</div>
+                </div>
+              </div>
+              <div class="sync-card">
+                <div class="sync-node">S</div>
+                <div>
+                  <div class="sync-title">Support diagnostics</div>
+                  <div class="sync-detail">Crash markers and recent API errors.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="scene5" class="scene">
+        <div class="grid" data-layout-ignore></div>
+        <div class="signal-band band-a" data-layout-ignore></div>
+        <div class="signal-band band-b" data-layout-ignore></div>
+        <div class="closing-content">
+          <section class="closing-copy">
+            <div class="closing-mark">
+              <img src="assets/chatmod-mark-outro.svg" alt="ChatMod mark" />
+            </div>
+            <h2 class="closing-title">ChatMod Mobile</h2>
+            <p class="closing-promise">Your channel. Your bot. Live chat handled.</p>
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              Custom YouTube Live moderation from your phone
+            </div>
+          </section>
+          <section class="phone-ghost">
+            <div class="ghost-top">
+              <div class="ghost-line"></div>
+              <div class="ghost-line short"></div>
+            </div>
+            <div class="ghost-rows">
+              <div class="ghost-row"></div>
+              <div class="ghost-row"></div>
+              <div class="ghost-row"></div>
+              <div class="ghost-row"></div>
+              <div class="ghost-row"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div id="wipe1" class="transition-panel"></div>
+      <div id="wipe2" class="transition-panel"></div>
+      <div id="wipe3" class="transition-panel"></div>
+      <div id="accent-wipe" class="transition-panel-accent"></div>
+      <div id="flash" class="flash"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      var tl = gsap.timeline({ paused: true });
+
+      tl.set("#scene1", { visibility: "visible", opacity: 1, zIndex: 1 }, 0);
+
+      tl.to(".signal-band", { x: 70, duration: 6, ease: "sine.inOut", yoyo: true, repeat: 4 }, 0);
+      tl.to(".eyebrow-dot", { boxShadow: "0 0 0 14px rgba(0, 168, 120, 0.05)", duration: 0.75, ease: "sine.inOut", yoyo: true, repeat: 24 }, 0);
+
+      tl.from("#scene1 .eyebrow", { y: 36, opacity: 0, duration: 0.55, ease: "power3.out" }, 0.18);
+      tl.from("#scene1 h1", { y: 58, opacity: 0, duration: 0.7, ease: "expo.out" }, 0.42);
+      tl.from("#scene1 .lead", { y: 34, opacity: 0, duration: 0.58, ease: "power2.out" }, 0.72);
+      tl.from("#scene1 .chat-row", { x: 120, opacity: 0, duration: 0.62, stagger: 0.13, ease: "back.out(1.4)" }, 0.48);
+      tl.from("#scene1 .pressure-meter", { y: 44, scale: 0.92, opacity: 0, duration: 0.55, ease: "power3.out" }, 1.04);
+      tl.from("#scene1 .mark-card", { scale: 0.78, opacity: 0, duration: 0.68, ease: "back.out(1.7)" }, 1.1);
+      tl.to("#scene1 .meter-number", { color: "#8d1e13", duration: 0.42, ease: "sine.inOut", yoyo: true, repeat: 2 }, 1.6);
+
+      tl.fromTo("#wipe1", { x: "-110%" }, { x: "0%", duration: 0.32, ease: "power4.inOut" }, 3.46);
+      tl.set("#scene2", { visibility: "visible", opacity: 1, zIndex: 2 }, 3.77);
+      tl.set("#scene1", { zIndex: 1 }, 3.78);
+      tl.to("#wipe1", { x: "110%", duration: 0.36, ease: "expo.inOut" }, 3.78);
+      tl.set("#scene1", { opacity: 0, visibility: "hidden" }, 4.14);
+
+      tl.from("#scene2 .eyebrow", { x: -42, opacity: 0, duration: 0.52, ease: "power3.out" }, 3.92);
+      tl.from("#scene2 h2", { y: 62, opacity: 0, duration: 0.66, ease: "expo.out" }, 4.12);
+      tl.from("#scene2 .lead", { y: 36, opacity: 0, duration: 0.55, ease: "power2.out" }, 4.44);
+      tl.from("#scene2 .hero-phone", { y: 84, rotation: -3, opacity: 0, duration: 0.82, ease: "back.out(1.2)" }, 3.98);
+      tl.from("#scene2 .status-card", { y: 38, opacity: 0, duration: 0.48, ease: "power4.out" }, 4.54);
+      tl.from("#scene2 .chip", { scale: 0.86, opacity: 0, duration: 0.42, stagger: 0.07, ease: "back.out(1.8)" }, 4.82);
+      tl.from("#scene2 .tab", { y: 18, opacity: 0, duration: 0.36, stagger: 0.04, ease: "power2.out" }, 5.06);
+      tl.from("#scene2 .queue-mini-row", { x: 48, opacity: 0, duration: 0.48, stagger: 0.12, ease: "power3.out" }, 5.28);
+      tl.from("#scene2 .callout", { x: -56, opacity: 0, duration: 0.52, stagger: 0.12, ease: "expo.out" }, 4.62);
+      tl.to("#scene2 .live-dot", { boxShadow: "0 0 0 12px rgba(0, 168, 120, 0.07)", duration: 0.58, ease: "sine.inOut", yoyo: true, repeat: 6 }, 4.7);
+
+      tl.fromTo("#wipe2", { x: "-110%" }, { x: "0%", duration: 0.32, ease: "power4.inOut" }, 7.66);
+      tl.set("#scene3", { visibility: "visible", opacity: 1, zIndex: 3 }, 7.97);
+      tl.set("#scene2", { zIndex: 2 }, 7.98);
+      tl.to("#wipe2", { x: "110%", duration: 0.36, ease: "expo.inOut" }, 7.98);
+      tl.set("#scene2", { opacity: 0, visibility: "hidden" }, 8.34);
+
+      tl.from("#scene3 .eyebrow", { y: 34, opacity: 0, duration: 0.5, ease: "power3.out" }, 8.08);
+      tl.from("#scene3 h2", { x: -60, opacity: 0, duration: 0.65, ease: "expo.out" }, 8.28);
+      tl.from("#scene3 .lead", { y: 34, opacity: 0, duration: 0.5, ease: "power2.out" }, 8.58);
+      tl.from("#scene3 .rule-card", { x: 96, opacity: 0, duration: 0.54, stagger: 0.12, ease: "back.out(1.1)" }, 8.24);
+      tl.from("#scene3 .rule-icon", { scale: 0.62, opacity: 0, duration: 0.38, stagger: 0.12, ease: "back.out(2)" }, 8.46);
+      tl.from("#scene3 .action-log", { y: 70, opacity: 0, duration: 0.58, ease: "power4.out" }, 9.34);
+      tl.to("#scene3 .rule-state", { color: "#1f63cc", duration: 0.28, yoyo: true, repeat: 5, ease: "sine.inOut" }, 9.1);
+
+      tl.fromTo("#wipe3", { x: "-110%" }, { x: "0%", duration: 0.32, ease: "power4.inOut" }, 12.16);
+      tl.set("#scene4", { visibility: "visible", opacity: 1, zIndex: 4 }, 12.47);
+      tl.set("#scene3", { zIndex: 3 }, 12.48);
+      tl.to("#wipe3", { x: "110%", duration: 0.36, ease: "expo.inOut" }, 12.48);
+      tl.set("#scene3", { opacity: 0, visibility: "hidden" }, 12.84);
+
+      tl.from("#scene4 .eyebrow", { x: -40, opacity: 0, duration: 0.5, ease: "power3.out" }, 12.58);
+      tl.from("#scene4 h2", { y: 62, opacity: 0, duration: 0.66, ease: "expo.out" }, 12.78);
+      tl.from("#scene4 .lead", { y: 34, opacity: 0, duration: 0.5, ease: "power2.out" }, 13.08);
+      tl.from("#scene4 .automation-panel", { y: 70, opacity: 0, duration: 0.58, stagger: 0.1, ease: "back.out(1.15)" }, 12.84);
+      tl.from("#scene4 .command-tile, #scene4 .timer-tile, #scene4 .log-row, #scene4 .sync-card", { y: 28, opacity: 0, duration: 0.4, stagger: 0.055, ease: "power4.out" }, 13.42);
+      tl.from("#scene4 .panel-pill", { scale: 0.82, opacity: 0, duration: 0.36, stagger: 0.09, ease: "back.out(1.9)" }, 13.2);
+      tl.to("#scene4 .sync-node", { backgroundColor: "#e2f8f0", color: "#007d5b", duration: 0.42, yoyo: true, repeat: 5, ease: "sine.inOut" }, 14.0);
+
+      tl.fromTo("#accent-wipe", { x: "-110%" }, { x: "0%", duration: 0.25, ease: "power4.inOut" }, 16.48);
+      tl.to("#flash", { opacity: 1, duration: 0.16, ease: "power2.out" }, 16.62);
+      tl.set("#scene5", { visibility: "visible", opacity: 1, zIndex: 5 }, 16.76);
+      tl.set("#scene4", { zIndex: 4 }, 16.77);
+      tl.to("#accent-wipe", { x: "110%", duration: 0.34, ease: "expo.inOut" }, 16.77);
+      tl.to("#flash", { opacity: 0, duration: 0.42, ease: "sine.inOut" }, 16.82);
+      tl.set("#scene4", { opacity: 0, visibility: "hidden" }, 17.11);
+
+      tl.from("#scene5 .closing-mark", { scale: 0.72, opacity: 0, duration: 0.68, ease: "back.out(1.7)" }, 16.94);
+      tl.from("#scene5 .closing-title", { y: 72, opacity: 0, duration: 0.7, ease: "expo.out" }, 17.16);
+      tl.from("#scene5 .closing-promise", { y: 42, opacity: 0, duration: 0.56, ease: "power3.out" }, 17.64);
+      tl.from("#scene5 .eyebrow", { x: -38, opacity: 0, duration: 0.5, ease: "power2.out" }, 18.04);
+      tl.from("#scene5 .phone-ghost", { x: 90, opacity: 0, rotation: 2, duration: 0.72, ease: "back.out(1.1)" }, 17.24);
+      tl.from("#scene5 .ghost-row", { x: 42, opacity: 0, duration: 0.36, stagger: 0.08, ease: "power3.out" }, 17.72);
+      tl.to("#scene5 .closing-content", { opacity: 0.96, duration: 0.44, ease: "sine.inOut" }, 19.54);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

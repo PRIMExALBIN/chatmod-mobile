@@ -1,0 +1,43 @@
+{
+  "name": "chatmod-mobile",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Full-stack phone-hosted YouTube Live moderation bot.",
+  "workspaces": [
+    "backend"
+  ],
+  "scripts": {
+    "backend:dev": "npm --workspace backend run dev",
+    "backend:build": "npm --workspace backend run build",
+    "backend:test": "npm --workspace backend run test",
+    "backend:db:push": "npm --workspace backend run prisma:push",
+    "backend:db:deploy": "npm --workspace backend run prisma:deploy",
+    "backend:db:validate": "npm --workspace backend run prisma:validate",
+    "backend:env:check": "npm --workspace backend run env:check --",
+    "backend:env:check:dev": "npm --workspace backend run env:check:dev --",
+    "backend:retention:prune": "npm --workspace backend run retention:prune --",
+    "backend:retention:prune:dev": "npm --workspace backend run retention:prune:dev --",
+    "backend:smoke": "node scripts/backend-smoke.mjs",
+    "android:wrapper:check": "node scripts/android-wrapper-check.mjs",
+    "android:data:check": "node scripts/android-local-data-check.mjs",
+    "android:di:check": "node scripts/android-di-check.mjs",
+    "android:ux:check": "node scripts/android-ux-check.mjs",
+    "android:device:qa": "node scripts/android-device-qa.mjs",
+    "android:release:check": "node scripts/android-release-artifact-check.mjs",
+    "launch-site:check": "node scripts/launch-site-check.mjs",
+    "promo-video:check": "node scripts/promo-video-check.mjs",
+    "release:evidence:check": "node scripts/release-evidence-check.mjs",
+    "store:check": "node scripts/store-readiness-check.mjs",
+    "production:check": "node scripts/production-readiness.mjs",
+    "deploy:check": "node scripts/deploy.mjs check",
+    "deploy:neon": "node scripts/deploy.mjs neon:setup",
+    "deploy:render": "node scripts/deploy.mjs render:setup",
+    "deploy:cf": "node scripts/deploy.mjs cf:setup",
+    "deploy:full": "node scripts/deploy.mjs full",
+    "test": "npm --workspaces --if-present run test",
+    "build": "npm --workspaces --if-present run build"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

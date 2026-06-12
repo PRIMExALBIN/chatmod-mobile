@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ChatModMobile.Launcher" parent="@style/Theme.ChatModMobile">
+        <item name="android:windowSplashScreenBackground">@color/chatmod_splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_chatmod_splash_mark</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/chatmod_primary</item>
+        <item name="android:windowSplashScreenAnimationDuration">180</item>
+        <item name="android:windowBackground">@drawable/chatmod_launch_screen</item>
+    </style>
+</resources>

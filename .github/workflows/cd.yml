@@ -1,0 +1,62 @@
+# ChatMod Mobile - Continuous Deployment
+# Auto-deploys the backend to Render when CI passes on main.
+# Requires: RENDER_DEPLOY_HOOK_URL set as a GitHub Actions secret.
+#
+# Setup:
+#   1. Go to Render Dashboard -> your service -> Settings -> Deploy Hook
+#   2. Copy the deploy hook URL
+#   3. Add it as RENDER_DEPLOY_HOOK_URL in GitHub repo secrets
+
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: ["main"]
+    types:
+      - completed
+
+jobs:
+  deploy-backend:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "No RENDER_DEPLOY_HOOK_URL set. Skipping auto-deploy."
+            echo "Set it in GitHub repo secrets to enable CD."
+            exit 0
+          fi
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          echo "Render deploy triggered."
+
+  smoke-deployed:
+    needs: [deploy-backend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Wait for deploy and smoke test
+        env:
+          BASE_URL: ${{ secrets.RENDER_BASE_URL }}
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "No RENDER_BASE_URL set. Skipping smoke test."
+            echo "Set RENDER_BASE_URL secret to your Render service URL (e.g. https://chatmod-backend.onrender.com)"
+            exit 0
+          fi
+          echo "Waiting for deploy to settle..."
+          sleep 30
+          npm run backend:smoke -- --base-url="$BASE_URL" --require-database --timeout-ms=30000
+          echo "Deploy smoke test passed."

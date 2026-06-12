@@ -1,0 +1,12 @@
+node_modules
+backend/dist
+backend/coverage
+coverage
+.git
+.gradle
+.idea
+android/.gradle
+*.log
+.env
+.env.*
+!/.env.example

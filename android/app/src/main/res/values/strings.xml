@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ChatMod Mobile</string>
+    <string name="bot_tile_start_label">Start ChatMod</string>
+    <string name="bot_tile_stop_label">Stop ChatMod</string>
+</resources>

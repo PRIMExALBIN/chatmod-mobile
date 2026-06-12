@@ -1,0 +1,115 @@
+{
+  "product": "ChatMod Mobile",
+  "evidenceDate": "YYYY-MM-DD",
+  "releaseCandidate": {
+    "androidBuild": "closedBetaDebug or signedRelease",
+    "backendUrl": "https://your-render-service.onrender.com",
+    "launchSiteUrl": "https://your-static-site.example",
+    "notes": "Use sanitized values only. Do not commit secrets, OAuth codes, tokens, Play service account JSON, or private stream keys."
+  },
+  "gates": [
+    {
+      "id": "backend-free-tier-deployment",
+      "title": "Backend free-tier deployment",
+      "status": "pending_external",
+      "requiredEvidence": [
+        "Neon Free project name or sanitized dashboard screenshot",
+        "Render Free service URL",
+        "Production env preflight JSON with secrets redacted",
+        "Prisma deploy command output",
+        "Retention dry-run JSON",
+        "Backend smoke command output with /health, /health/ready, /app/compatibility, x-request-id, and database requirement"
+      ],
+      "commands": [
+        "npm run backend:env:check -- --json",
+        "npm run backend:db:deploy",
+        "npm run backend:retention:prune -- --json",
+        "npm run backend:smoke -- --base-url=<deployed-backend> --require-database"
+      ],
+      "artifactPaths": []
+    },
+    {
+      "id": "google-youtube-oauth-live",
+      "title": "Google OAuth and YouTube Live proof",
+      "status": "pending_external",
+      "requiredEvidence": [
+        "Google OAuth consent screen configured screenshot",
+        "Development OAuth client callback URL",
+        "Production OAuth client callback URL",
+        "OAuth scope review matching docs/OAUTH_PERMISSIONS.md",
+        "Real Google sign-in proof using the connected bot channel",
+        "Private test stream proof for live-chat discovery, send, delete, timeout, and hide",
+        "Bot-not-moderator recovery proof",
+        "Token revocation proof after disconnect"
+      ],
+      "commands": [
+        "npm run backend:smoke -- --base-url=<staging-backend> --require-database",
+        "Run private YouTube test stream from docs/YOUTUBE_MODERATOR_SETUP.md"
+      ],
+      "artifactPaths": []
+    },
+    {
+      "id": "android-device-qa",
+      "title": "Android device or emulator QA",
+      "status": "pending_external",
+      "requiredEvidence": [
+        "ADB install and launch output",
+        "Screenshot from android:device:qa --capture-evidence",
+        "Logcat capture from android:device:qa --capture-evidence",
+        "Room/DataStore migration result",
+        "Account/privacy controls result",
+        "Backup/restore/local wipe result",
+        "Support diagnostics result",
+        "Settings/DataStore/Logs result",
+        "HTTP retry/backoff result",
+        "Koin Activity/service/Quick Settings/WorkManager result",
+        "TalkBack, text scaling, high contrast, one-handed QA result",
+        "Background/screen-lock/battery/network/orientation result"
+      ],
+      "commands": [
+        "npm run android:device:qa -- --install --launch --capture-evidence --clear-logcat"
+      ],
+      "artifactPaths": []
+    },
+    {
+      "id": "play-console-store-policy",
+      "title": "Google Play Console and policy proof",
+      "status": "pending_external",
+      "requiredEvidence": [
+        "Play Console subscription products for chatmod_pro_monthly and chatmod_creator_monthly",
+        "Play purchase validation proof with real Play Console credentials",
+        "Closed-testing install purchase and restore proof",
+        "Support email chosen and monitored",
+        "Privacy policy deployed URL",
+        "Terms deployed URL",
+        "Play listing reviewed from docs/PLAY_STORE_LISTING.md",
+        "Phone screenshots from real Android build",
+        "Play Data Safety submitted from final behavior",
+        "Closed testing track created",
+        "Open beta track decision"
+      ],
+      "commands": [
+        "npm run store:check"
+      ],
+      "artifactPaths": []
+    },
+    {
+      "id": "creator-beta-acceptance",
+      "title": "Creator beta acceptance",
+      "status": "pending_external",
+      "requiredEvidence": [
+        "Creator can sign in with Google",
+        "Creator can connect to an active YouTube Live chat",
+        "Bot runs from Android foreground service",
+        "Bot sends command and timer messages",
+        "Bot handles basic spam/banned-word rules in a real stream",
+        "Bot survives normal backgrounding and screen lock",
+        "Beta creator feedback says UX is polished enough to use without apology"
+      ],
+      "commands": [
+        "Run closed beta test from docs/PRODUCTION_RELEASE_CHECKLIST.md"
+      ],
+      "artifactPaths": []
+    }
+  ]
+}

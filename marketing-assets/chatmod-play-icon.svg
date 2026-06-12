@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="ChatMod Mobile Play Store icon">
+  <rect width="512" height="512" fill="#EAF2FF"/>
+  <rect x="66" y="48" width="380" height="372" rx="52" fill="#1F63CC"/>
+  <path d="M226 404 L226 476 L304 404 Z" fill="#1F63CC"/>
+  <rect x="148" y="126" width="226" height="188" rx="34" fill="#FFFFFF"/>
+  <path d="M222 304 L258 360 L294 304 Z" fill="#FFFFFF"/>
+  <circle cx="226" cy="222" r="24" fill="#00A878"/>
+  <circle cx="302" cy="222" r="24" fill="#00A878"/>
+</svg>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ChatModMobile" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/chatmod_splash_background</item>
+        <item name="android:statusBarColor">@color/chatmod_splash_background</item>
+        <item name="android:navigationBarColor">@color/chatmod_splash_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:colorAccent">@color/chatmod_live</item>
+    </style>
+
+    <style name="Theme.ChatModMobile.Launcher" parent="@style/Theme.ChatModMobile">
+        <item name="android:windowBackground">@drawable/chatmod_launch_screen</item>
+    </style>
+</resources>

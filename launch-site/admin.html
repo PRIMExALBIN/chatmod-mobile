@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ChatMod Mobile support dashboard for beta operations, device lookup, entitlement correction, ticket metadata, and beta-interest review."
+    />
+    <title>ChatMod Mobile Admin Dashboard</title>
+    <link rel="icon" href="assets/chatmod-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="dashboard-page">
+    <a class="skip-link" href="#main">Skip to dashboard</a>
+    <header class="site-header" aria-label="Admin navigation">
+      <a class="brand" href="index.html" aria-label="ChatMod Mobile home">
+        <img src="assets/chatmod-mark.svg" alt="" width="38" height="38" />
+        <span>ChatMod Mobile</span>
+      </a>
+      <nav class="site-nav" aria-label="Admin sections">
+        <a href="#lookup">Lookup</a>
+        <a href="#support-events">Events</a>
+        <a href="#operations">Actions</a>
+      </nav>
+      <a class="nav-action" href="index.html#beta">Launch site</a>
+    </header>
+
+    <main id="main" class="admin-shell" data-admin-dashboard>
+      <section class="admin-hero" aria-labelledby="admin-title">
+        <div>
+          <p class="eyebrow">Beta operations</p>
+          <h1 id="admin-title">Support dashboard</h1>
+          <p>
+            Look up creator devices, inspect recent diagnostics, adjust beta entitlements, and review launch-site beta interest without adding a paid helpdesk or analytics dashboard.
+          </p>
+        </div>
+        <div class="ops-status-grid" aria-label="Dashboard posture">
+          <div>
+            <span>Hosting</span>
+            <strong>Static</strong>
+            <small>Cloudflare Pages Free-ready</small>
+          </div>
+          <div>
+            <span>Backend</span>
+            <strong>Admin API</strong>
+            <small>x-admin-api-key only</small>
+          </div>
+          <div>
+            <span>Secrets</span>
+            <strong>Runtime</strong>
+            <small>No checked-in admin key</small>
+          </div>
+        </div>
+      </section>
+
+      <section id="lookup" class="admin-panel" aria-labelledby="lookup-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Lookup</p>
+            <h2 id="lookup-title">Find a device snapshot.</h2>
+          </div>
+          <p role="status" aria-live="polite" data-admin-status>Enter the backend origin and admin key to start.</p>
+        </div>
+
+        <form class="admin-control-grid" data-admin-form>
+          <label>
+            Backend origin
+            <input
+              name="origin"
+              type="url"
+              inputmode="url"
+              placeholder="https://your-render-service.onrender.com"
+              autocomplete="url"
+              data-admin-origin
+              required
+            />
+          </label>
+          <label>
+            Admin API key
+            <input
+              name="adminKey"
+              type="password"
+              autocomplete="off"
+              data-admin-key
+              required
+            />
+          </label>
+          <label>
+            Device ID
+            <input name="deviceId" type="text" autocomplete="off" data-device-id />
+          </label>
+          <label>
+            Install ID
+            <input name="installId" type="text" autocomplete="off" data-install-id />
+          </label>
+          <div class="admin-actions">
+            <button type="submit" data-load-user>Load device</button>
+            <button type="button" class="button secondary" data-load-beta>Beta interest</button>
+            <button type="button" class="button secondary" data-check-health>Check health</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="dashboard-grid" data-dashboard-results hidden>
+        <article class="metric-card">
+          <span>User</span>
+          <strong data-user-label>Unknown</strong>
+          <small data-device-label>No device loaded</small>
+        </article>
+        <article class="metric-card">
+          <span>Plan</span>
+          <strong data-plan-label>Starter</strong>
+          <small data-subscription-label>No subscription record</small>
+        </article>
+        <article class="metric-card">
+          <span>Profiles</span>
+          <strong data-profile-count>0</strong>
+          <small data-linked-label>No linked channel</small>
+        </article>
+      </section>
+
+      <section id="support-events" class="dashboard-grid two-column" data-dashboard-results hidden>
+        <article class="admin-panel">
+          <div class="panel-heading compact">
+            <div>
+              <p class="eyebrow">Diagnostics</p>
+              <h2>Support events</h2>
+            </div>
+          </div>
+          <div class="event-list" data-support-events>
+            <p class="empty-copy">Load a device to see support events.</p>
+          </div>
+        </article>
+        <article class="admin-panel">
+          <div class="panel-heading compact">
+            <div>
+              <p class="eyebrow">Backend</p>
+              <h2>API errors</h2>
+            </div>
+          </div>
+          <div class="event-list" data-api-errors>
+            <p class="empty-copy">Load a device to see API errors.</p>
+          </div>
+        </article>
+      </section>
+
+      <section id="operations" class="dashboard-grid two-column" data-dashboard-results hidden>
+        <article class="admin-panel">
+          <div class="panel-heading compact">
+            <div>
+              <p class="eyebrow">Billing support</p>
+              <h2>Manual entitlement</h2>
+            </div>
+          </div>
+          <form class="stacked-form" data-entitlement-form>
+            <label>
+              Plan
+              <select name="plan">
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+                <option value="creator">Creator</option>
+              </select>
+            </label>
+            <label>
+              Status
+              <select name="status">
+                <option value="active">Active</option>
+                <option value="trialing">Trialing</option>
+                <option value="past_due">Past due</option>
+                <option value="canceled">Canceled</option>
+                <option value="expired">Expired</option>
+              </select>
+            </label>
+            <label>
+              Ticket ID
+              <input name="ticketId" type="text" maxlength="120" autocomplete="off" />
+            </label>
+            <label>
+              Note
+              <textarea name="note" rows="3" maxlength="500"></textarea>
+            </label>
+            <button type="submit">Save entitlement</button>
+          </form>
+        </article>
+
+        <article class="admin-panel">
+          <div class="panel-heading compact">
+            <div>
+              <p class="eyebrow">Support desk</p>
+              <h2>Ticket metadata</h2>
+            </div>
+          </div>
+          <form class="stacked-form" data-ticket-form>
+            <label>
+              Ticket ID
+              <input name="ticketId" type="text" maxlength="120" autocomplete="off" required />
+            </label>
+            <label>
+              Status
+              <select name="status">
+                <option value="open">Open</option>
+                <option value="triaging">Triaging</option>
+                <option value="waiting">Waiting</option>
+                <option value="closed">Closed</option>
+              </select>
+            </label>
+            <label>
+              Priority
+              <select name="priority">
+                <option value="p2">P2</option>
+                <option value="p0">P0</option>
+                <option value="p1">P1</option>
+                <option value="p3">P3</option>
+              </select>
+            </label>
+            <label>
+              Tags
+              <input name="tags" type="text" placeholder="oauth, billing, stream" autocomplete="off" />
+            </label>
+            <label>
+              Note
+              <textarea name="note" rows="3" maxlength="1000"></textarea>
+            </label>
+            <button type="submit">Save ticket metadata</button>
+          </form>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>ChatMod Mobile</span>
+      <a href="index.html">Home</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </footer>
+    <script src="admin-dashboard.js"></script>
+  </body>
+</html>
