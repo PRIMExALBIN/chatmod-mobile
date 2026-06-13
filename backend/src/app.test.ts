@@ -1321,9 +1321,8 @@ describe("ChatMod Mobile API", () => {
     await app.close();
   });
 
-  it("rejects stream discovery when the requested channel differs from the connected YouTube account", async () => {
+  it("allows stream discovery when the requested channel differs from the connected YouTube account (bot mode)", async () => {
     const app = await buildApp({
-      youtubeOAuthConfigured: true,
       youtubeAccountStatusProvider: async () => ({
         connected: true,
         linkedAccountId: "linked-youtube-1",
@@ -1345,12 +1344,10 @@ describe("ChatMod Mobile API", () => {
       }
     });
 
-    expect(response.statusCode).toBe(409);
+    expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
-      error: "YOUTUBE_CHANNEL_MISMATCH",
-      requestedChannelId: "different-channel",
-      connectedChannelId: "channel-linked-1",
-      connectedChannelTitle: "ChatMod Bot Channel"
+      channelMismatch: true,
+      requestedChannelId: "different-channel"
     });
 
     await app.close();
