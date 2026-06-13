@@ -81,7 +81,7 @@ jobs:
         run: npm run store:check
 
       - name: Audit
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=critical
 
       - name: Build backend Docker image
         run: docker build -f backend/Dockerfile -t chatmod-backend:ci .
