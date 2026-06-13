@@ -2364,38 +2364,20 @@ class DashboardViewModel(
 
             val connectedChannelId = accountStatus.connectedChannelIdOrNull()
             val connectedChannelTitle = accountStatus.connectedChannelTitleOrNull()
-            if (accountStatus.hasChannelMismatch(channelId)) {
-                _state.update { current ->
-                    current.copy(
-                        streamTitle = "No active stream connected",
-                        videoId = null,
-                        liveChatId = null,
-                        syncStatus = SyncStatus.Offline,
-                        streamSelector = current.streamSelector.copy(
-                            isLoading = false,
-                            source = accountStatus.source,
-                            discoveryStatus = "channel_mismatch",
-                            activeBroadcastCount = 0,
-                            needsSelection = false,
-                            connectedChannelId = connectedChannelId,
-                            connectedChannelTitle = connectedChannelTitle,
-                            channelMismatch = true,
-                            statusMessage = "Use connected channel: ${accountStatus.connectedChannelLabel()}",
-                            broadcasts = emptyList()
-                        )
-                    )
-                }
-                return@launch
-            }
+            val isMismatch = accountStatus.hasChannelMismatch(channelId)
 
             _state.update { current ->
                 current.copy(
                     streamSelector = current.streamSelector.copy(
-                        statusMessage = "Finding streams",
+                        statusMessage = if (isMismatch) {
+                            "Bot watching: ${accountStatus.connectedChannelLabel()} -> $channelId"
+                        } else {
+                            "Finding streams"
+                        },
                         source = accountStatus.source,
                         connectedChannelId = connectedChannelId,
                         connectedChannelTitle = connectedChannelTitle,
-                        channelMismatch = false
+                        channelMismatch = isMismatch
                     )
                 )
             }

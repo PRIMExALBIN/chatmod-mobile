@@ -130,10 +130,7 @@ export async function youtubeRoutes(app: FastifyInstance, options: YouTubeRoutes
 
   app.post("/live-chat/discover", { preHandler: requireAuth }, async (request, reply) => {
     const body = discoverSchema.parse(request.body);
-    const accountCheck = await assertRequestedChannelMatchesAccount(request.auth!, reply, body.channelId);
-    if (!accountCheck) {
-      return;
-    }
+    const accountCheck = await accountCheckNoBlock(request.auth!, body.channelId);
     const client = await resolveClient(request.auth!, reply);
     if (!client) {
       return;
@@ -151,10 +148,7 @@ export async function youtubeRoutes(app: FastifyInstance, options: YouTubeRoutes
 
   app.post("/live-chat/broadcasts", { preHandler: requireAuth }, async (request, reply) => {
     const body = discoverSchema.parse(request.body);
-    const accountCheck = await assertRequestedChannelMatchesAccount(request.auth!, reply, body.channelId);
-    if (!accountCheck) {
-      return;
-    }
+    const accountCheck = await accountCheckNoBlock(request.auth!, body.channelId);
     const client = await resolveClient(request.auth!, reply);
     if (!client) {
       return;
@@ -284,6 +278,20 @@ export async function youtubeRoutes(app: FastifyInstance, options: YouTubeRoutes
     }
 
     return youtube;
+  }
+
+  async function accountCheckNoBlock(
+    auth: AuthContext,
+    requestedChannelId: string
+  ): Promise<{
+    account: YouTubeLinkedAccountStatus;
+    channelMismatch: boolean;
+  }> {
+    const account = await accountStatusProvider(auth);
+    return {
+      account,
+      channelMismatch: isRequestedChannelMismatch(account, requestedChannelId)
+    };
   }
 
   async function assertRequestedChannelMatchesAccount(
